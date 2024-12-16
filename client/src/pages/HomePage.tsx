@@ -5,6 +5,7 @@ import ModelSelection from "@/components/ModelSelection";
 import ShirtSelection from "@/components/ShirtSelection";
 import ResultsArea from "@/components/ResultsArea";
 import AdminPanel from "@/components/AdminPanel";
+import FilterPanel from "@/components/FilterPanel";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,6 +47,16 @@ export default function HomePage() {
       </header>
 
       <div className="flex h-[calc(100vh-64px)]">
+        <aside className="w-80 border-r bg-card p-4 overflow-y-auto">
+          <div className="space-y-6">
+            <FilterPanel onApplyFilters={(filters) => {
+              console.log('Applied filters:', filters);
+              // TODO: Implement filter logic
+            }} />
+            {user?.isAdmin && <AdminPanel />}
+          </div>
+        </aside>
+
         <main className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6 max-w-4xl mx-auto">
             <ModelSelection
@@ -62,14 +73,6 @@ export default function HomePage() {
             />
           </div>
         </main>
-
-        <aside className="w-80 border-l bg-card p-4 overflow-y-auto">
-          <div className="space-y-6">
-            <h2 className="text-lg font-semibold">Filters</h2>
-            {/* Filter sections will go here */}
-            {user?.isAdmin && <AdminPanel />}
-          </div>
-        </aside>
       </div>
     </div>
   );
