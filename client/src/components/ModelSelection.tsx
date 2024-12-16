@@ -15,6 +15,7 @@ import type { Model } from "@db/schema";
 type ModelSelectionProps = {
   onSelect: (model: Model | null) => void;
   selected: Model | null;
+  onToggleFilters?: () => void;
 };
 
 export default function ModelSelection({ onSelect, selected }: ModelSelectionProps) {
@@ -46,6 +47,7 @@ export default function ModelSelection({ onSelect, selected }: ModelSelectionPro
             variant="outline"
             size="sm"
             className="flex items-center gap-2"
+            onClick={() => onToggleFilters?.()}
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filters

@@ -17,15 +17,25 @@ export default function HomePage() {
   const [showModelFilters, setShowModelFilters] = useState(false);
   const [showShirtFilters, setShowShirtFilters] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState<'model' | 'shirt' | null>(null);
-  
+  const [modelFilters, setModelFilters] = useState<any>(null);
+  const [shirtFilters, setShirtFilters] = useState<any>(null);
+
   const handleModelFilters = (filters: any) => {
-    console.log('Applied model filters:', filters);
-    // TODO: Implement filter logic
+    setModelFilters(filters);
   };
 
   const handleShirtFilters = (filters: any) => {
-    console.log('Applied shirt filters:', filters);
-    // TODO: Implement filter logic
+    setShirtFilters(filters);
+  };
+
+  const toggleModelFilters = () => {
+    setShowModelFilters(!showModelFilters);
+    setShowShirtFilters(false); // Close other filter panel
+  };
+
+  const toggleShirtFilters = () => {
+    setShowShirtFilters(!showShirtFilters);
+    setShowModelFilters(false); // Close other filter panel
   };
 
   const handleLogout = async () => {
@@ -66,23 +76,7 @@ export default function HomePage() {
             <div className="space-y-6">
               {showModelFilters && (
                 <FilterPanel 
-                  title="Model Filters"
                   onApplyFilters={handleModelFilters}
-                  onClose={() => setShowModelFilters(false)}
-                  filterConfig={{
-                    booleanFilter: { label: "Available", key: "available" },
-                    multiSelect: { 
-                      label: "Gender",
-                      options: ["Male", "Female"],
-                      key: "gender"
-                    },
-                    slider: {
-                      label: "Height",
-                      min: 150,
-                      max: 200,
-                      key: "height"
-                    }
-                  }}
                 />
               )}
               {showShirtFilters && (
@@ -115,6 +109,7 @@ export default function HomePage() {
             <ModelSelection
               onSelect={setSelectedModel}
               selected={selectedModel}
+              onToggleFilters={() => setShowModelFilters(true)}
             />
             <ShirtSelection
               onSelect={setSelectedShirt}

@@ -24,10 +24,26 @@ export default function ResultsArea({ model, shirt }: ResultsAreaProps) {
     document.body.removeChild(link);
   };
 
+  const handleCombine = () => {
+    alert("Combining images... (placeholder)");
+  };
+
+  const handleDownloadAll = () => {
+    alert("Downloading all images as zip... (placeholder)");
+  };
+
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Results</CardTitle>
+        <div className="flex gap-2">
+          <Button onClick={handleCombine}>
+            Combine
+          </Button>
+          <Button variant="outline" onClick={handleDownloadAll}>
+            Download All
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {!model || !shirt ? (
