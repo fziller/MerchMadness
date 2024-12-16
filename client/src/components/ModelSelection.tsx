@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -8,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { SlidersHorizontal } from "lucide-react";
 import type { Model } from "@db/schema";
 
 type ModelSelectionProps = {
@@ -27,9 +28,12 @@ export default function ModelSelection({ onSelect, selected }: ModelSelectionPro
         <CardTitle>Select Model</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Select onValueChange={(value) => onSelect(models?.find(m => m.id === parseInt(value)) || null)}>
-            <SelectTrigger>
+        <div className="flex justify-between items-center">
+          <Select onValueChange={(value) => {
+            const selectedModel = models?.find(m => m.gender === value) || null;
+            onSelect(selectedModel);
+          }}>
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Choose gender" />
             </SelectTrigger>
             <SelectContent>
@@ -38,7 +42,14 @@ export default function ModelSelection({ onSelect, selected }: ModelSelectionPro
             </SelectContent>
           </Select>
 
-          <Input type="text" placeholder="Search models..." />
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+          </Button>
         </div>
 
         <ScrollArea className="h-[400px]">

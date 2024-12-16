@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { Model, Shirt } from "@db/schema";
 import { useUser } from "@/hooks/use-user";
 import ModelSelection from "@/components/ModelSelection";
 import ShirtSelection from "@/components/ShirtSelection";
@@ -10,8 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 export default function HomePage() {
   const { user, logout } = useUser();
   const { toast } = useToast();
-  const [selectedModel, setSelectedModel] = useState(null);
-  const [selectedShirt, setSelectedShirt] = useState(null);
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+  const [selectedShirt, setSelectedShirt] = useState<Shirt | null>(null);
 
   const handleLogout = async () => {
     try {
@@ -44,34 +45,32 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div className="md:col-span-3">
+      <div className="flex h-[calc(100vh-64px)]">
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-6 max-w-4xl mx-auto">
             <ModelSelection
               onSelect={setSelectedModel}
               selected={selectedModel}
             />
-          </div>
-          <div className="md:col-span-3">
             <ShirtSelection
               onSelect={setSelectedShirt}
               selected={selectedShirt}
             />
-          </div>
-          <div className="md:col-span-6">
             <ResultsArea
               model={selectedModel}
               shirt={selectedShirt}
             />
           </div>
-        </div>
+        </main>
 
-        {user?.isAdmin && (
-          <div className="mt-8">
-            <AdminPanel />
+        <aside className="w-80 border-l bg-card p-4 overflow-y-auto">
+          <div className="space-y-6">
+            <h2 className="text-lg font-semibold">Filters</h2>
+            {/* Filter sections will go here */}
+            {user?.isAdmin && <AdminPanel />}
           </div>
-        )}
-      </main>
+        </aside>
+      </div>
     </div>
   );
 }
