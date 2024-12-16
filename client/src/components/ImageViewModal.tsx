@@ -44,9 +44,10 @@ export default function ImageViewModal({
         </DialogHeader>
         <div className="relative">
           <img
-            src={imageUrl}
+            src={imageUrl.startsWith('/uploads') ? imageUrl : `/uploads/${imageUrl}`}
             alt={title}
             className="w-full h-auto rounded-lg"
+            style={{ maxHeight: '80vh', objectFit: 'contain' }}
           />
         </div>
       </DialogContent>

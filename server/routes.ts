@@ -28,7 +28,7 @@ const upload = multer({
     destination: uploadsDir,
     filename: (req, file, cb) => {
       // Clean the original filename and add timestamp
-      const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+      const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, "_");
       cb(null, `${Date.now()}-${cleanName}`);
     },
   }),
@@ -36,7 +36,7 @@ const upload = multer({
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
-  
+
   // Serve uploaded files
   app.use("/uploads", express.static(uploadsDir));
 
@@ -54,14 +54,6 @@ export function registerRoutes(app: Express): Server {
       }
 
       const imageUrl = `/uploads/${req.file.filename}`;
-      console.log("api/models route", {
-        body: req.body,
-        name,
-        gender,
-        metadata,
-        imageUrl,
-        file: req.file,
-      });
 
       const [newModel] = await db
         .insert(models)
@@ -80,6 +72,40 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/models/:id", async (req, res) => {
+    try {
+      // Get the model to find the image path
+      const [model] = await db
+        .select()
+        .from(models)
+        .where(eq(models.id, parseInt(req.params.id)))
+        .limit(1);
+
+      if (!model) {
+        return res.status(404).send("Model not found");
+      }
+
+      // Delete the physical file
+      const filePath = join(__dirname, "..", "public", model.imageUrl.replace(/^\/uploads\//, ""));
+      try {
+        await fs.promises.unlink(filePath);
+      } catch (err) {
+        console.error("Error deleting file:", err);
+        // Continue even if file deletion fails
+      }
+
+      // Delete from database
+      await db
+        .delete(models)
+        .where(eq(models.id, parseInt(req.params.id)));
+
+      res.json({ message: "Model deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting model:", error);
+      res.status(500).send("Error deleting model");
+    }
+  });
+
   // Shirts API
   app.get("/api/shirts", async (req, res) => {
     const allShirts = await db.select().from(shirts);
@@ -87,19 +113,62 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.post("/api/shirts", upload.single("image"), async (req, res) => {
-    const { name, metadata } = req.body;
-    const imageUrl = `${req.file?.filename}`;
+    try {
+      const { name, metadata } = req.body;
+      if (!req.file) {
+        return res.status(400).send("No image file uploaded");
+      }
 
-    const [newShirt] = await db
-      .insert(shirts)
-      .values({
-        name,
-        imageUrl,
-        metadata: metadata ? JSON.parse(metadata) : null,
-      })
-      .returning();
+      const imageUrl = `/uploads/${req.file.filename}`;
 
-    res.json(newShirt);
+      const [newShirt] = await db
+        .insert(shirts)
+        .values({
+          name,
+          imageUrl,
+          metadata: metadata ? JSON.parse(metadata) : null,
+        })
+        .returning();
+
+      res.json(newShirt);
+    } catch (error) {
+      console.error("Error creating shirt:", error);
+      res.status(500).send("Error creating shirt");
+    }
+  });
+
+  app.delete("/api/shirts/:id", async (req, res) => {
+    try {
+      // Get the shirt to find the image path
+      const [shirt] = await db
+        .select()
+        .from(shirts)
+        .where(eq(shirts.id, parseInt(req.params.id)))
+        .limit(1);
+
+      if (!shirt) {
+        return res.status(404).send("Shirt not found");
+      }
+
+      // Delete the physical file
+      const filePath = join(__dirname, "..", "public", shirt.imageUrl.replace(/^\/uploads\//, ""));
+      try {
+        await fs.promises.unlink(filePath);
+      } catch (err) {
+        console.error("Error deleting file:", err);
+        // Continue even if file deletion fails
+      }
+
+      // Delete from database
+      await db
+        .delete(shirts)
+        .where(eq(shirts.id, parseInt(req.params.id)));
+
+      res.json({ message: "Shirt deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting shirt:", error);
+      res.status(500).send("Error deleting shirt");
+    }
   });
 
   // Combined Images API
