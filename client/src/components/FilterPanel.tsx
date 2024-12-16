@@ -17,19 +17,34 @@ export type Filters = {
   priceRange?: [number, number];
 };
 
+type FilterOption = {
+  label: string;
+  key: string;
+  value?: string | number | boolean;
+};
+
+type FilterConfig = {
+  booleanFilters?: FilterOption[];
+  multiSelect?: {
+    label: string;
+    options: string[];
+    key: string;
+  };
+  rangeSlider?: {
+    label: string;
+    min: number;
+    max: number;
+    key: string;
+    defaultValue?: [number, number];
+  };
+};
+
 type FilterPanelProps = {
   onApplyFilters: (filters: Filters) => void;
   onClose: () => void;
   title: string;
-  filterConfig?: {
-    booleanFilter?: { label: string; key: string };
-    multiSelect?: { label: string; options: string[]; key: string };
-    slider?: { label: string; min: number; max: number; key: string };
-  };
+  config: FilterConfig;
 };
-
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
-const DEFAULT_PRICE_RANGE: [number, number] = [0, 100];
 
 export default function FilterPanel({
   onApplyFilters,

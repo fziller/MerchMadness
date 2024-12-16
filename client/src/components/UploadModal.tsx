@@ -19,7 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 type UploadModalProps = {
-  type: 'model' | 'shirt';
+  type: "model" | "shirt";
   onClose: () => void;
 };
 
@@ -68,19 +68,21 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
     const file = e.target.files?.[0];
     if (file) {
       const newFormData = new FormData();
-      newFormData.append('image', file);
+      newFormData.append("image", file);
       setFormData(newFormData);
     }
   };
 
   const handleMetadataChange = (key: string, value: string) => {
-    const metadata = formData.get('metadata') 
-      ? JSON.parse(formData.get('metadata') as string) 
+    const metadata = formData.get("metadata")
+      ? JSON.parse(formData.get("metadata") as string)
       : {};
-    
+
     metadata[key] = value;
-    formData.set('metadata', JSON.stringify(metadata));
-    setFormData(new FormData(formData));
+    console.log(metadata, JSON.stringify(metadata), formData);
+    formData.set("metadata", JSON.stringify(metadata));
+    console.log(formData);
+    setFormData(formData);
   };
 
   return (
@@ -94,17 +96,17 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
             <Label>Name</Label>
             <Input
               name="name"
-              onChange={(e) => formData.set('name', e.target.value)}
+              onChange={(e) => formData.set("name", e.target.value)}
               required
             />
           </div>
 
-          {type === 'model' ? (
+          {type === "model" ? (
             <>
               <div className="space-y-2">
                 <Label>Gender</Label>
                 <Select
-                  onValueChange={(value) => formData.set('gender', value)}
+                  onValueChange={(value) => formData.set("gender", value)}
                   required
                 >
                   <SelectTrigger>
@@ -120,7 +122,10 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 <Label>Height (cm)</Label>
                 <Input
                   type="number"
-                  onChange={(e) => handleMetadataChange('height', e.target.value)}
+                  onChange={(e) => {
+                    console.log({ e });
+                    handleMetadataChange("height", e.target.value);
+                  }}
                 />
               </div>
             </>
@@ -129,14 +134,14 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
               <div className="space-y-2">
                 <Label>Size</Label>
                 <Select
-                  onValueChange={(value) => handleMetadataChange('size', value)}
+                  onValueChange={(value) => handleMetadataChange("size", value)}
                   required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
-                    {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
+                    {["XS", "S", "M", "L", "XL"].map((size) => (
                       <SelectItem key={size} value={size}>
                         {size}
                       </SelectItem>
@@ -148,7 +153,9 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 <Label>Price ($)</Label>
                 <Input
                   type="number"
-                  onChange={(e) => handleMetadataChange('price', e.target.value)}
+                  onChange={(e) =>
+                    handleMetadataChange("price", e.target.value)
+                  }
                   required
                 />
               </div>

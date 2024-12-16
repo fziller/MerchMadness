@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Setup multer
-const multer = (await import('multer')).default;
+const multer = (await import("multer")).default;
 
 // Create uploads directory if it doesn't exist
 if (!fs.existsSync("uploads")) {
@@ -24,9 +24,9 @@ const upload = multer({
   storage: multer.diskStorage({
     destination: "uploads/",
     filename: (req, file, cb) => {
-      cb(null, Date.now() + path.extname(file.originalname));
-    }
-  })
+      cb(null, Date.now() + "-" + file.originalname);
+    },
+  }),
 });
 
 const isAdmin = (req: Request, res: Response, next: NextFunction) => {
@@ -45,7 +45,8 @@ export function registerRoutes(app: Express): Server {
     res.json(allModels);
   });
 
-  app.post("/api/models", isAdmin, upload.single("image"), async (req, res) => {
+  //
+  app.post("/api/models", upload.single("image"), async (req, res) => {
     const { name, gender, metadata } = req.body;
     const imageUrl = `/uploads/${req.file?.filename}`;
 
@@ -68,7 +69,7 @@ export function registerRoutes(app: Express): Server {
     res.json(allShirts);
   });
 
-  app.post("/api/shirts", isAdmin, upload.single("image"), async (req, res) => {
+  app.post("/api/shirts", upload.single("image"), async (req, res) => {
     const { name, metadata } = req.body;
     const imageUrl = `/uploads/${req.file?.filename}`;
 

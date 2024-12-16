@@ -17,9 +17,13 @@ export default function HomePage() {
   const [selectedShirt, setSelectedShirt] = useState<Shirt | null>(null);
   const [showModelFilters, setShowModelFilters] = useState(false);
   const [showShirtFilters, setShowShirtFilters] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState<'model' | 'shirt' | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState<
+    "model" | "shirt" | null
+  >(null);
   const [modelFilters, setModelFilters] = useState<any>(null);
   const [shirtFilters, setShirtFilters] = useState<any>(null);
+
+  console.log({ showShirtFilters, showModelFilters });
 
   const handleModelFilters = (filters: any) => {
     setModelFilters(filters);
@@ -31,27 +35,31 @@ export default function HomePage() {
 
   const toggleModelFilters = () => {
     console.log("Toggling model filters");
-    setShowModelFilters(prev => !prev);
+    setShowModelFilters((prev) => !prev);
     setShowShirtFilters(false); // Close other filter panel
   };
 
   const toggleShirtFilters = () => {
     console.log("Toggling shirt filters");
-    setShowShirtFilters(prev => !prev);
+    setShowShirtFilters((prev) => !prev);
     setShowModelFilters(false); // Close other filter panel
   };
 
   const handleModelSelection = (model: Model | null) => {
     setSelectedModel(model);
     if (model) {
-      alert(`Selected model with filters: ${JSON.stringify(modelFilters || {})}`);
+      alert(
+        `Selected model with filters: ${JSON.stringify(modelFilters || {})}`,
+      );
     }
   };
 
   const handleShirtSelection = (shirt: Shirt | null) => {
     setSelectedShirt(shirt);
     if (shirt) {
-      alert(`Selected shirt with filters: ${JSON.stringify(shirtFilters || {})}`);
+      alert(
+        `Selected shirt with filters: ${JSON.stringify(shirtFilters || {})}`,
+      );
     }
   };
 
@@ -92,7 +100,7 @@ export default function HomePage() {
           <aside className="w-80 border-r bg-card p-4 overflow-y-auto">
             <div className="space-y-6">
               {showModelFilters && (
-                <FilterPanel 
+                <FilterPanel
                   onApplyFilters={handleModelFilters}
                   title="Model Filters"
                   onClose={() => setShowModelFilters(false)}
@@ -100,14 +108,14 @@ export default function HomePage() {
                     multiSelect: {
                       label: "Gender",
                       options: ["male", "female"],
-                      key: "gender"
+                      key: "gender",
                     },
                     slider: {
                       label: "Height",
                       min: 150,
                       max: 200,
-                      key: "height"
-                    }
+                      key: "height",
+                    },
                   }}
                 />
               )}
@@ -118,17 +126,17 @@ export default function HomePage() {
                   onClose={() => setShowShirtFilters(false)}
                   filterConfig={{
                     booleanFilter: { label: "In Stock", key: "inStock" },
-                    multiSelect: { 
+                    multiSelect: {
                       label: "Size",
                       options: ["XS", "S", "M", "L", "XL"],
-                      key: "size"
+                      key: "size",
                     },
                     slider: {
                       label: "Price",
                       min: 0,
                       max: 100,
-                      key: "price"
-                    }
+                      key: "price",
+                    },
                   }}
                 />
               )}
@@ -148,10 +156,7 @@ export default function HomePage() {
               selected={selectedShirt}
               onToggleFilters={toggleShirtFilters}
             />
-            <ResultsArea
-              model={selectedModel}
-              shirt={selectedShirt}
-            />
+            <ResultsArea model={selectedModel} shirt={selectedShirt} />
           </div>
         </main>
 
@@ -160,24 +165,31 @@ export default function HomePage() {
           <div className="space-y-4">
             <h2 className="font-semibold text-lg">Actions</h2>
             <div className="space-y-2">
-              {user?.isAdmin && (
-                <>
+              <>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => setShowUploadModal("model")}
+                >
+                  Upload Model
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => setShowUploadModal("shirt")}
+                >
+                  Upload Shirt
+                </Button>
+                {user?.isAdmin && (
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={() => setShowUploadModal('model')}
+                    onClick={() => console.log("Admin panel")}
                   >
-                    Upload Model
+                    User Management
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => setShowUploadModal('shirt')}
-                  >
-                    Upload Shirt
-                  </Button>
-                </>
-              )}
+                )}
+              </>
             </div>
           </div>
         </aside>

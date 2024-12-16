@@ -8,9 +8,14 @@ import type { Shirt } from "@db/schema";
 type ShirtSelectionProps = {
   onSelect: (shirt: Shirt | null) => void;
   selected: Shirt | null;
+  onToggleFilters: () => void; // Changed to non-optional
 };
 
-export default function ShirtSelection({ onSelect, selected }: ShirtSelectionProps) {
+export default function ShirtSelection({
+  onSelect,
+  selected,
+  onToggleFilters,
+}: ShirtSelectionProps) {
   const { data: shirts } = useQuery<Shirt[]>({
     queryKey: ["/api/shirts"],
   });
@@ -26,6 +31,7 @@ export default function ShirtSelection({ onSelect, selected }: ShirtSelectionPro
             variant="outline"
             size="sm"
             className="flex items-center gap-2"
+            onClick={onToggleFilters}
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filters
@@ -35,29 +41,37 @@ export default function ShirtSelection({ onSelect, selected }: ShirtSelectionPro
         <ScrollArea className="h-[500px]">
           <div className="grid grid-cols-2 gap-2">
             {/* Show placeholders if no shirts */}
-            {(!shirts || shirts.length === 0) ? Array(6).fill(0).map((_, i) => (
-              <div
-                key={i}
-                className="cursor-pointer rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/50 aspect-square flex items-center justify-center bg-muted/50"
-                onClick={() => onSelect(null)}
-              >
-                <span className="text-sm text-muted-foreground">Shirt {i + 1}</span>
-              </div>
-            )) : shirts.map((shirt) => (
-              <div
-                key={shirt.id}
-                className={`cursor-pointer rounded-lg overflow-hidden border-2 ${
-                  selected?.id === shirt.id ? "border-primary" : "border-transparent"
-                }`}
-                onClick={() => onSelect(shirt)}
-              >
-                <img
-                  src={shirt.imageUrl}
-                  alt={shirt.name}
-                  className="w-full h-auto object-cover aspect-square"
-                />
-              </div>
-            ))}
+            {!shirts || shirts.length === 0
+              ? Array(6)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div
+                      key={i}
+                      className="cursor-pointer rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/50 aspect-square flex items-center justify-center bg-muted/50"
+                      onClick={() => onSelect(null)}
+                    >
+                      <span className="text-sm text-muted-foreground">
+                        Shirt {i + 1}
+                      </span>
+                    </div>
+                  ))
+              : shirts.map((shirt) => (
+                  <div
+                    key={shirt.id}
+                    className={`cursor-pointer rounded-lg overflow-hidden border-2 ${
+                      selected?.id === shirt.id
+                        ? "border-primary"
+                        : "border-transparent"
+                    }`}
+                    onClick={() => onSelect(shirt)}
+                  >
+                    <img
+                      src={shirt.imageUrl}
+                      alt={shirt.name}
+                      className="w-full h-auto object-cover aspect-square"
+                    />
+                  </div>
+                ))}
           </div>
         </ScrollArea>
       </CardContent>
