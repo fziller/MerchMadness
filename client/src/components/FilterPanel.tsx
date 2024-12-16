@@ -19,16 +19,28 @@ export type Filters = {
 
 type FilterPanelProps = {
   onApplyFilters: (filters: Filters) => void;
+  onClose: () => void;
+  title: string;
+  filterConfig?: {
+    booleanFilter?: { label: string; key: string };
+    multiSelect?: { label: string; options: string[]; key: string };
+    slider?: { label: string; min: number; max: number; key: string };
+  };
 };
 
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 const DEFAULT_PRICE_RANGE: [number, number] = [0, 100];
 
-export default function FilterPanel({ onApplyFilters }: FilterPanelProps) {
+export default function FilterPanel({
+  onApplyFilters,
+  title,
+  onClose,
+}: FilterPanelProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [inStock, setInStock] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>(DEFAULT_PRICE_RANGE);
+  const [priceRange, setPriceRange] =
+    useState<[number, number]>(DEFAULT_PRICE_RANGE);
 
   const handleReset = () => {
     setInStock(false);
@@ -40,17 +52,17 @@ export default function FilterPanel({ onApplyFilters }: FilterPanelProps) {
     onApplyFilters({
       inStock,
       sizes: selectedSizes.length > 0 ? selectedSizes : undefined,
-      priceRange: priceRange[0] !== DEFAULT_PRICE_RANGE[0] || priceRange[1] !== DEFAULT_PRICE_RANGE[1]
-        ? priceRange
-        : undefined,
+      priceRange:
+        priceRange[0] !== DEFAULT_PRICE_RANGE[0] ||
+        priceRange[1] !== DEFAULT_PRICE_RANGE[1]
+          ? priceRange
+          : undefined,
     });
   };
 
   const toggleSize = (size: string) => {
-    setSelectedSizes(prev =>
-      prev.includes(size)
-        ? prev.filter(s => s !== size)
-        : [...prev, size]
+    setSelectedSizes((prev) =>
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
     );
   };
 
@@ -61,8 +73,12 @@ export default function FilterPanel({ onApplyFilters }: FilterPanelProps) {
       className="w-full border rounded-lg p-2"
     >
       <CollapsibleTrigger className="flex items-center justify-between w-full p-2">
-        <span className="font-semibold">Filters</span>
-        {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        <span className="font-semibold">{title}</span>
+        {isOpen ? (
+          <ChevronDown className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
       </CollapsibleTrigger>
 
       <CollapsibleContent className="mt-4">
@@ -106,7 +122,9 @@ export default function FilterPanel({ onApplyFilters }: FilterPanelProps) {
                 max={100}
                 step={1}
                 value={[priceRange[0], priceRange[1]]}
-                onValueChange={(value) => setPriceRange(value as [number, number])}
+                onValueChange={(value) =>
+                  setPriceRange(value as [number, number])
+                }
                 className="w-full"
               />
               <div className="flex justify-between text-sm text-muted-foreground">
@@ -121,7 +139,12 @@ export default function FilterPanel({ onApplyFilters }: FilterPanelProps) {
           <Button variant="outline" onClick={handleReset}>
             Reset
           </Button>
-          <Button onClick={handleApply}>
+          <Button
+            onClick={() => {
+              handleApply;
+              onClose();
+            }}
+          >
             Apply Filters
           </Button>
         </div>

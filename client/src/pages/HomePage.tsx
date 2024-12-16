@@ -5,6 +5,7 @@ import ModelSelection from "@/components/ModelSelection";
 import ShirtSelection from "@/components/ShirtSelection";
 import ResultsArea from "@/components/ResultsArea";
 import AdminPanel from "@/components/AdminPanel";
+import UploadModal from "@/components/UploadModal";
 import FilterPanel from "@/components/FilterPanel";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -77,6 +78,21 @@ export default function HomePage() {
               {showModelFilters && (
                 <FilterPanel 
                   onApplyFilters={handleModelFilters}
+                  title="Model Filters"
+                  onClose={() => setShowModelFilters(false)}
+                  filterConfig={{
+                    multiSelect: {
+                      label: "Gender",
+                      options: ["male", "female"],
+                      key: "gender"
+                    },
+                    slider: {
+                      label: "Height",
+                      min: 150,
+                      max: 200,
+                      key: "height"
+                    }
+                  }}
                 />
               )}
               {showShirtFilters && (
