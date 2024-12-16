@@ -15,10 +15,10 @@ import type { Model } from "@db/schema";
 type ModelSelectionProps = {
   onSelect: (model: Model | null) => void;
   selected: Model | null;
-  onToggleFilters?: () => void;
+  onToggleFilters: () => void; // Changed to non-optional
 };
 
-export default function ModelSelection({ onSelect, selected }: ModelSelectionProps) {
+export default function ModelSelection({ onSelect, selected, onToggleFilters }: ModelSelectionProps) {
   const { data: models } = useQuery<Model[]>({
     queryKey: ["/api/models"],
   });
@@ -47,7 +47,7 @@ export default function ModelSelection({ onSelect, selected }: ModelSelectionPro
             variant="outline"
             size="sm"
             className="flex items-center gap-2"
-            onClick={() => onToggleFilters?.()}
+            onClick={onToggleFilters} // Fixed onClick handler
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filters
@@ -64,11 +64,18 @@ export default function ModelSelection({ onSelect, selected }: ModelSelectionPro
                 }`}
                 onClick={() => onSelect(model)}
               >
-                <img
-                  src={model.imageUrl}
-                  alt={model.name}
-                  className="w-full h-auto object-cover aspect-[3/4]"
-                />
+                {/* Placeholder thumbnail implementation needed here */}
+                {model.imageUrl ? (
+                  <img
+                    src={model.imageUrl}
+                    alt={model.name}
+                    className="w-full h-auto object-cover aspect-[3/4]"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                    <p>No Image</p>
+                  </div>
+                )}
               </div>
             ))}
           </div>

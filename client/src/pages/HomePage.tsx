@@ -30,13 +30,29 @@ export default function HomePage() {
   };
 
   const toggleModelFilters = () => {
-    setShowModelFilters(!showModelFilters);
+    console.log("Toggling model filters");
+    setShowModelFilters(prev => !prev);
     setShowShirtFilters(false); // Close other filter panel
   };
 
   const toggleShirtFilters = () => {
-    setShowShirtFilters(!showShirtFilters);
+    console.log("Toggling shirt filters");
+    setShowShirtFilters(prev => !prev);
     setShowModelFilters(false); // Close other filter panel
+  };
+
+  const handleModelSelection = (model: Model | null) => {
+    setSelectedModel(model);
+    if (model) {
+      alert(`Selected model with filters: ${JSON.stringify(modelFilters || {})}`);
+    }
+  };
+
+  const handleShirtSelection = (shirt: Shirt | null) => {
+    setSelectedShirt(shirt);
+    if (shirt) {
+      alert(`Selected shirt with filters: ${JSON.stringify(shirtFilters || {})}`);
+    }
   };
 
   const handleLogout = async () => {
@@ -123,13 +139,14 @@ export default function HomePage() {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6 max-w-4xl mx-auto">
             <ModelSelection
-              onSelect={setSelectedModel}
+              onSelect={handleModelSelection}
               selected={selectedModel}
-              onToggleFilters={() => setShowModelFilters(true)}
+              onToggleFilters={toggleModelFilters}
             />
             <ShirtSelection
-              onSelect={setSelectedShirt}
+              onSelect={handleShirtSelection}
               selected={selectedShirt}
+              onToggleFilters={toggleShirtFilters}
             />
             <ResultsArea
               model={selectedModel}

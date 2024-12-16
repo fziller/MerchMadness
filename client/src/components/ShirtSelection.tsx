@@ -34,7 +34,16 @@ export default function ShirtSelection({ onSelect, selected }: ShirtSelectionPro
 
         <ScrollArea className="h-[500px]">
           <div className="grid grid-cols-2 gap-2">
-            {shirts?.map((shirt) => (
+            {/* Show placeholders if no shirts */}
+            {(!shirts || shirts.length === 0) ? Array(6).fill(0).map((_, i) => (
+              <div
+                key={i}
+                className="cursor-pointer rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/50 aspect-square flex items-center justify-center bg-muted/50"
+                onClick={() => onSelect(null)}
+              >
+                <span className="text-sm text-muted-foreground">Shirt {i + 1}</span>
+              </div>
+            )) : shirts.map((shirt) => (
               <div
                 key={shirt.id}
                 className={`cursor-pointer rounded-lg overflow-hidden border-2 ${
