@@ -5,40 +5,40 @@ import { db } from "@db";
 import { models, shirts, combinedImages } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { dirname, join } from "path";
 import fs from "fs";
-import { uuid } from "drizzle-orm/pg-core";
+import express from "express";
 
 // ES modules compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Ensure uploads directory exists
+const publicDir = join(__dirname, "..", "public");
+const uploadsDir = join(publicDir, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Setup multer
 const multer = (await import("multer")).default;
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync("public/")) {
-  fs.mkdirSync("public/");
-}
-
 const upload = multer({
   storage: multer.diskStorage({
-    destination: "public/",
+    destination: uploadsDir,
     filename: (req, file, cb) => {
-      cb(null, Date.now().toString() + file.originalname);
+      // Clean the original filename and add timestamp
+      const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+      cb(null, `${Date.now()}-${cleanName}`);
     },
   }),
 });
 
-const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated() && req.user?.isAdmin) {
-    return next();
-  }
-  res.status(403).send("Admin access required");
-};
-
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
+  
+  // Serve uploaded files
+  app.use("/uploads", express.static(uploadsDir));
 
   // Models API
   app.get("/api/models", async (req, res) => {
@@ -46,23 +46,30 @@ export function registerRoutes(app: Express): Server {
     res.json(allModels);
   });
 
-  //
   app.post("/api/models", upload.single("image"), async (req, res) => {
     try {
-      const { name, gender, height } = req.body;
+      const { name, gender, metadata } = req.body;
       if (!req.file) {
         return res.status(400).send("No image file uploaded");
       }
 
       const imageUrl = `/uploads/${req.file.filename}`;
-      
+      console.log("api/models route", {
+        body: req.body,
+        name,
+        gender,
+        metadata,
+        imageUrl,
+        file: req.file,
+      });
+
       const [newModel] = await db
         .insert(models)
         .values({
           name,
           gender,
           imageUrl,
-          metadata: { height },
+          metadata: metadata ? JSON.parse(metadata) : null,
         })
         .returning();
 

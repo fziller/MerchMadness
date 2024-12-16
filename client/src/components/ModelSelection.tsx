@@ -110,7 +110,12 @@ export default function ModelSelection({
                   />
                 );
               }
-              console.log(model);
+              console.log(
+                "Single model info:",
+                model,
+                import.meta.env.BASE_URL + model.imageUrl,
+                import.meta.env,
+              );
               return (
                 <div
                   key={model.id}
@@ -129,9 +134,9 @@ export default function ModelSelection({
                   >
                     {model.imageUrl ? (
                       <img
-                        src={model.imageUrl}
+                        src={model.imageUrl.startsWith('/uploads') ? model.imageUrl : `/uploads/${model.imageUrl}`}
                         alt={model.name}
-                        className="w-full h-auto object-cover aspect-[3/4]"
+                        className="w-full h-40 object-cover"
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-300 flex items-center justify-center">

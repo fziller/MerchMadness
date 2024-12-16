@@ -163,7 +163,7 @@ export default function FilterPanel({
           </Button>
           <Button
             onClick={() => {
-              handleApply;
+              handleApply();
               onClose();
             }}
           >
