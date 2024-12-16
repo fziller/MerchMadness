@@ -39,11 +39,18 @@ type FilterConfig = {
   };
 };
 
+const DEFAULT_PRICE_RANGE: [number, number] = [0, 100];
+const SIZES = ["XS", "S", "M", "L", "XL"];
+
 type FilterPanelProps = {
   onApplyFilters: (filters: Filters) => void;
   onClose: () => void;
   title: string;
-  config: FilterConfig;
+  filterConfig?: {
+    booleanFilter?: { label: string; key: string };
+    multiSelect?: { label: string; options: string[]; key: string };
+    slider?: { label: string; min: number; max: number; key: string };
+  };
 };
 
 export default function FilterPanel({

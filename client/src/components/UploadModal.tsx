@@ -23,16 +23,40 @@ type UploadModalProps = {
   onClose: () => void;
 };
 
+type ModelData = {
+  name?: string;
+  image?: object;
+  height?: number;
+  gender?: "male" | "female";
+};
+
+type ShirtData = {
+  name?: string;
+  image?: object;
+  height?: number;
+  size?: string;
+  price?: number;
+};
+
 export default function UploadModal({ type, onClose }: UploadModalProps) {
-  const [formData, setFormData] = useState(new FormData());
+  const [formData, setFormData] = useState<ModelData | ShirtData>({});
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
+      const form = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'image' && value instanceof File) {
+          form.append('image', value);
+        } else {
+          form.append(key, String(value));
+        }
+      });
+
       const response = await fetch(`/api/${type}s`, {
         method: "POST",
-        body: formData,
+        body: form,
         credentials: "include",
       });
 
@@ -64,27 +88,6 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
     uploadMutation.mutate();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const newFormData = new FormData();
-      newFormData.append("image", file);
-      setFormData(newFormData);
-    }
-  };
-
-  const handleMetadataChange = (key: string, value: string) => {
-    const metadata = formData.get("metadata")
-      ? JSON.parse(formData.get("metadata") as string)
-      : {};
-
-    metadata[key] = value;
-    console.log(metadata, JSON.stringify(metadata), formData);
-    formData.set("metadata", JSON.stringify(metadata));
-    console.log(formData);
-    setFormData(formData);
-  };
-
   return (
     <Dialog open onOpenChange={() => onClose()}>
       <DialogContent>
@@ -96,7 +99,9 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
             <Label>Name</Label>
             <Input
               name="name"
-              onChange={(e) => formData.set("name", e.target.value)}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               required
             />
           </div>
@@ -106,7 +111,12 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
               <div className="space-y-2">
                 <Label>Gender</Label>
                 <Select
-                  onValueChange={(value) => formData.set("gender", value)}
+                  onValueChange={(value) => {
+                    setFormData({
+                      ...formData,
+                      gender: value as "male" | "female",
+                    });
+                  }}
                   required
                 >
                   <SelectTrigger>
@@ -123,8 +133,10 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 <Input
                   type="number"
                   onChange={(e) => {
-                    console.log({ e });
-                    handleMetadataChange("height", e.target.value);
+                    setFormData({
+                      ...formData,
+                      height: Number(e.target.value),
+                    });
                   }}
                 />
               </div>
@@ -134,7 +146,9 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
               <div className="space-y-2">
                 <Label>Size</Label>
                 <Select
-                  onValueChange={(value) => handleMetadataChange("size", value)}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, size: value })
+                  }
                   required
                 >
                   <SelectTrigger>
@@ -154,7 +168,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 <Input
                   type="number"
                   onChange={(e) =>
-                    handleMetadataChange("price", e.target.value)
+                    setFormData({ ...formData, price: Number(e.target.value) })
                   }
                   required
                 />
@@ -166,7 +180,12 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
             <Label>Image</Label>
             <Input
               type="file"
-              onChange={handleFileChange}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setFormData({ ...formData, image: file });
+                }
+              }}
               accept="image/*"
               required
             />

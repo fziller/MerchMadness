@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import fs from "fs";
+import { uuid } from "drizzle-orm/pg-core";
 
 // ES modules compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -16,15 +17,15 @@ const __dirname = dirname(__filename);
 const multer = (await import("multer")).default;
 
 // Create uploads directory if it doesn't exist
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
+if (!fs.existsSync("public/")) {
+  fs.mkdirSync("public/");
 }
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: "uploads/",
+    destination: "public/",
     filename: (req, file, cb) => {
-      cb(null, Date.now() + "-" + file.originalname);
+      cb(null, Date.now().toString() + file.originalname);
     },
   }),
 });
@@ -47,20 +48,29 @@ export function registerRoutes(app: Express): Server {
 
   //
   app.post("/api/models", upload.single("image"), async (req, res) => {
-    const { name, gender, metadata } = req.body;
-    const imageUrl = `/uploads/${req.file?.filename}`;
+    try {
+      const { name, gender, height } = req.body;
+      if (!req.file) {
+        return res.status(400).send("No image file uploaded");
+      }
 
-    const [newModel] = await db
-      .insert(models)
-      .values({
-        name,
-        gender,
-        imageUrl,
-        metadata: metadata ? JSON.parse(metadata) : null,
-      })
-      .returning();
+      const imageUrl = `/uploads/${req.file.filename}`;
+      
+      const [newModel] = await db
+        .insert(models)
+        .values({
+          name,
+          gender,
+          imageUrl,
+          metadata: { height },
+        })
+        .returning();
 
-    res.json(newModel);
+      res.json(newModel);
+    } catch (error) {
+      console.error("Error uploading model:", error);
+      res.status(500).send("Error uploading model");
+    }
   });
 
   // Shirts API
@@ -71,7 +81,7 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/shirts", upload.single("image"), async (req, res) => {
     const { name, metadata } = req.body;
-    const imageUrl = `/uploads/${req.file?.filename}`;
+    const imageUrl = `${req.file?.filename}`;
 
     const [newShirt] = await db
       .insert(shirts)

@@ -97,17 +97,19 @@ export default function ModelSelection({
         <ScrollArea className="h-[400px]">
           <div className="grid grid-cols-2 gap-2">
             {models?.map((model) => {
-      {selectedImage && (
-        <ImageViewModal
-          imageUrl={selectedImage.imageUrl}
-          title={selectedImage.name}
-          onClose={() => setSelectedImage(null)}
-          onDelete={() => {
-            deleteMutation.mutate(selectedImage.id);
-            setSelectedImage(null);
-          }}
-        />
-      )}
+              {
+                selectedImage && (
+                  <ImageViewModal
+                    imageUrl={selectedImage.imageUrl}
+                    title={selectedImage.name}
+                    onClose={() => setSelectedImage(null)}
+                    onDelete={() => {
+                      deleteMutation.mutate(selectedImage.id);
+                      setSelectedImage(null);
+                    }}
+                  />
+                );
+              }
               console.log(model);
               return (
                 <div
@@ -118,7 +120,7 @@ export default function ModelSelection({
                       : "border-transparent"
                   }`}
                 >
-                  <div 
+                  <div
                     className="relative"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -142,7 +144,11 @@ export default function ModelSelection({
                       className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (window.confirm("Are you sure you want to delete this model?")) {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this model?",
+                          )
+                        ) {
                           deleteMutation.mutate(model.id);
                         }
                       }}
@@ -155,7 +161,7 @@ export default function ModelSelection({
             })}
           </div>
         </ScrollArea>
-        <ImageViewModal model={selectedImage} onClose={() => setSelectedImage(null)} />
+        {/* <ImageViewModal model={selectedImage} onClose={() => setSelectedImage(null)} /> */}
       </CardContent>
     </Card>
   );

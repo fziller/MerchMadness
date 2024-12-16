@@ -4,7 +4,6 @@ import { useUser } from "@/hooks/use-user";
 import ModelSelection from "@/components/ModelSelection";
 import ShirtSelection from "@/components/ShirtSelection";
 import ResultsArea from "@/components/ResultsArea";
-import AdminPanel from "@/components/AdminPanel";
 import UploadModal from "@/components/UploadModal";
 import FilterPanel from "@/components/FilterPanel";
 import { Button } from "@/components/ui/button";
