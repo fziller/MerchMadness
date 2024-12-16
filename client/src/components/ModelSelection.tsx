@@ -134,9 +134,14 @@ export default function ModelSelection({
                   >
                     {model.imageUrl ? (
                       <img
-                        src={model.imageUrl.startsWith('/uploads') ? model.imageUrl : `/uploads/${model.imageUrl}`}
+                        src={
+                          model.imageUrl.startsWith("/uploads")
+                            ? model.imageUrl
+                            : `/uploads/${model.imageUrl}`
+                        }
                         alt={model.name}
                         className="w-full h-40 object-cover"
+                        onClick={() => setSelectedImage(model)}
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-300 flex items-center justify-center">
@@ -166,7 +171,25 @@ export default function ModelSelection({
             })}
           </div>
         </ScrollArea>
-        {/* <ImageViewModal model={selectedImage} onClose={() => setSelectedImage(null)} /> */}
+        {selectedImage && (
+          <ImageViewModal
+            imageUrl={
+              selectedImage.imageUrl.startsWith("/uploads")
+                ? selectedImage.imageUrl
+                : `/uploads/${selectedImage.imageUrl}`
+            }
+            title={selectedImage.name}
+            onClose={() => setSelectedImage(null)}
+            onDelete={() => {
+              if (
+                window.confirm("Are you sure you want to delete this shirt?")
+              ) {
+                deleteMutation.mutate(selectedImage.id);
+                setSelectedImage(null);
+              }
+            }}
+          />
+        )}
       </CardContent>
     </Card>
   );

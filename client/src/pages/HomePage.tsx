@@ -103,6 +103,23 @@ export default function HomePage() {
                   onApplyFilters={handleModelFilters}
                   title="Model Filters"
                   onClose={() => setShowModelFilters(false)}
+                  multiFilterConfig={{
+                    booleanFilter: [
+                      {label: "Gender" , options: ["Male", "Female"], key: "gender", value: true}
+                    ], 
+                    multiSelect: [{
+                      label: "Genre",
+                      options: ["Fashion", "Streetwear", "Casual", "Sports", "Cosplay"],
+                      key: "genre",
+                      selectedOptions: []
+                    },
+                    {
+                                   label: "Event",
+                                   options: ["Christmans", "Easter", "Wacken"],
+                                   key: "event",
+                                   selectedOptions: []
+                                 
+                  }]}
                   filterConfig={{
                     multiSelect: {
                       label: "Gender",
