@@ -3,17 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import type { Model } from "@db/schema";
 import { useToast } from "@/hooks/use-toast";
 import ImageViewModal from "./ImageViewModal";
+import ActiveFilters from "./ActiveFilters";
 
 type ModelSelectionProps = {
   onSelect: (model: Model | null) => void;
@@ -69,18 +63,23 @@ export default function ModelSelection({
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center">
           <div className="space-y-4 w-full">
-            <ActiveFilters filters={{
-              singleSelect: [{
-                label: "Gender",
-                selectedOption: selectedGender || "",
-                key: "gender"
-              }],
-              // Add other filter types here
-            }} onRemove={(type, key) => {
-              if (type === "singleSelect" && key === "gender") {
-                setSelectedGender("");
-              }
-            }} />
+            <ActiveFilters
+              filters={{
+                singleSelect: [
+                  {
+                    label: "Gender",
+                    selectedOption: selectedGender || "",
+                    key: "gender",
+                  },
+                ],
+                // Add other filter types here
+              }}
+              onRemove={(type, key) => {
+                if (type === "singleSelect" && key === "gender") {
+                  setSelectedGender("");
+                }
+              }}
+            />
           </div>
 
           <Button

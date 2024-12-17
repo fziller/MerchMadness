@@ -24,7 +24,6 @@ type FilterOption = {
 };
 
 const DEFAULT_PRICE_RANGE: [number, number] = [0, 100];
-const SIZES = ["XS", "S", "M", "L", "XL"];
 
 type FilterPanelProps = {
   onApplyFilters: (filters: Filters) => void;
@@ -57,6 +56,7 @@ type FilterPanelProps = {
       max: number;
       key: string;
       value: number;
+      onValueChange: (value: number) => void;
     }[];
   };
 };
@@ -79,33 +79,30 @@ export default function FilterPanel({
     if (multiFilterConfig) {
       // Reset boolean filters
       if (multiFilterConfig.booleanFilter) {
-        multiFilterConfig.booleanFilter.forEach(filter => {
+        multiFilterConfig.booleanFilter.forEach((filter) => {
           filter.value = false;
         });
       }
-      
+
       // Reset multi-select filters
       if (multiFilterConfig.multiSelect) {
-        multiFilterConfig.multiSelect.forEach(filter => {
+        multiFilterConfig.multiSelect.forEach((filter) => {
           filter.onSelectOption([]);
         });
       }
-      
+
       // Reset range sliders
       if (multiFilterConfig.rangeSlider) {
-        multiFilterConfig.rangeSlider.forEach(filter => {
+        multiFilterConfig.rangeSlider.forEach((filter) => {
           filter.value = filter.min;
         });
       }
     }
-    
+
     // Apply reset filters
     onApplyFilters({});
     onClose();
   };
-
-  useEffect(() => console.log("Rerendering filter"), [localMultiFilterConfig]);
-  console.log({ model: localMultiFilterConfig?.multiSelect?.[0] });
 
   const handleApply = () => {
     onApplyFilters({
@@ -153,66 +150,68 @@ export default function FilterPanel({
               </div>
             ))}
             {/* Multi-select Filter */}
-            {localMultiFilterConfig?.multiSelect?.map((multiSelectFilter) => {
-              console.log("On the multiselect: ", multiSelectFilter);
-              console.log(
-                "On the multiselect: ",
-                multiSelectFilter.selectedOptions,
+            {localMultiFilterConfig?.multiSelect?.map((multiSelectFilter) => (
+              <div className="space-y-2">
+                <h3 className="font-medium">{multiSelectFilter.label}</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {multiSelectFilter.options.map((option) => {
+                    let isChecked =
+                      multiSelectFilter.selectedOptions.includes(option);
+                    return (
+                      <div key={option} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`${multiSelectFilter.label}-${option}`}
+                          checked={isChecked}
+                          onCheckedChange={() => {
+                            const newSelectedOptions = isChecked
+                              ? multiSelectFilter.selectedOptions.filter(
+                                  (s) => s !== option,
+                                )
+                              : [...multiSelectFilter.selectedOptions, option];
+                            multiSelectFilter.onSelectOption(
+                              newSelectedOptions,
+                            );
+                          }}
+                        />
+                        <label htmlFor={`option-${option}`}>{option}</label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {multiFilterConfig?.rangeSlider?.map((sliderFilter, index) => {
+              const [actualValue, setActualValue] = useState(
+                sliderFilter.value,
               );
+
               return (
-                <div className="space-y-2">
-                  <h3 className="font-medium">Sizes</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {multiSelectFilter.options.map((option) => {
-                      let isChecked =
-                        multiSelectFilter.selectedOptions.includes(option);
-                      console.log("Inside the option", option);
-                      return (
-                        <div
-                          key={option}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={`${multiSelectFilter.label}-${option}`}
-                            checked={isChecked}
-                            onCheckedChange={() => {
-                              const newSelectedOptions = isChecked
-                                ? multiSelectFilter.selectedOptions.filter(s => s !== option)
-                                : [...multiSelectFilter.selectedOptions, option];
-                              multiSelectFilter.onSelectOption(newSelectedOptions);
-                            }}
-                          />
-                          <label htmlFor={`option-${option}`}>{option}</label>
-                        </div>
-                      );
-                    })}
+                <div key={sliderFilter.key} className="space-y-4">
+                  <h3 className="font-medium">{sliderFilter.label}</h3>
+                  <Slider
+                    min={sliderFilter.min}
+                    max={sliderFilter.max}
+                    step={1}
+                    defaultValue={[sliderFilter.value]}
+                    onValueChange={(value) => {
+                      console.log({ value });
+                      sliderFilter.onValueChange(value[0]);
+                      setActualValue(value[0]);
+                      console.log({ actualValue });
+                    }}
+                    className="w-full"
+                  />
+                  <div className="text-center text-sm text-muted-foreground">
+                    {actualValue}
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>{sliderFilter.min}</span>
+                    <span>{sliderFilter.max}</span>
                   </div>
                 </div>
               );
             })}
-
-            {multiFilterConfig?.rangeSlider?.map((sliderFilter, index) => (
-              <div key={sliderFilter.key} className="space-y-4">
-                <h3 className="font-medium">{sliderFilter.label}</h3>
-                <Slider
-                  min={sliderFilter.min}
-                  max={sliderFilter.max}
-                  step={1}
-                  defaultValue={[sliderFilter.value]}
-                  onValueChange={(value) => {
-                    sliderFilter.value = value[0];
-                  }}
-                  className="w-full"
-                />
-                <div className="text-center text-sm text-muted-foreground">
-                  Current value: {sliderFilter.value}
-                </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>{sliderFilter.min}</span>
-                  <span>{sliderFilter.max}</span>
-                </div>
-              </div>
-            ))}
 
             {multiFilterConfig?.singleSelect?.map((selectFilter) => (
               <div key={selectFilter.key} className="space-y-2">
@@ -222,7 +221,9 @@ export default function FilterPanel({
                   onValueChange={(value) => selectFilter.onSelectOption(value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={`Select ${selectFilter.label.toLowerCase()}`} />
+                    <SelectValue
+                      placeholder={`Select ${selectFilter.label.toLowerCase()}`}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {selectFilter.options.map((option) => (

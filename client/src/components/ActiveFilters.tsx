@@ -29,7 +29,10 @@ type ActiveFiltersProps = {
   onRemove: (type: string, key: string, value?: string) => void;
 };
 
-export default function ActiveFilters({ filters, onRemove }: ActiveFiltersProps) {
+export default function ActiveFilters({
+  filters,
+  onRemove,
+}: ActiveFiltersProps) {
   return (
     <div className="flex flex-wrap gap-2">
       {filters.booleanFilter?.map(
@@ -46,7 +49,7 @@ export default function ActiveFilters({ filters, onRemove }: ActiveFiltersProps)
                 onClick={() => onRemove("boolean", filter.key)}
               />
             </Badge>
-          )
+          ),
       )}
       {filters.multiSelect?.map(
         (filter) =>
@@ -63,7 +66,7 @@ export default function ActiveFilters({ filters, onRemove }: ActiveFiltersProps)
                 onClick={() => onRemove("multiSelect", filter.key, option)}
               />
             </Badge>
-          ))
+          )),
       )}
       {filters.singleSelect?.map(
         (filter) =>
@@ -79,7 +82,7 @@ export default function ActiveFilters({ filters, onRemove }: ActiveFiltersProps)
                 onClick={() => onRemove("singleSelect", filter.key)}
               />
             </Badge>
-          )
+          ),
       )}
       {filters.rangeSlider?.map(
         (filter) =>
@@ -95,7 +98,7 @@ export default function ActiveFilters({ filters, onRemove }: ActiveFiltersProps)
                 onClick={() => onRemove("rangeSlider", filter.key)}
               />
             </Badge>
-          )
+          ),
       )}
     </div>
   );

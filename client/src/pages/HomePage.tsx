@@ -23,6 +23,8 @@ export default function HomePage() {
   const [shirtFilters, setShirtFilters] = useState<any>(null);
   const [modelGenre, setModelGenre] = useState<string[]>([]);
   const [modelEvent, setModelEvent] = useState<string[]>([]);
+  const [heightFilter, setHeightFilter] = useState<number>(100);
+  const [widthFilter, setWidthFilter] = useState<number>(50);
 
   console.log({ showShirtFilters, showModelFilters, modelGenre, modelEvent });
 
@@ -144,14 +146,16 @@ export default function HomePage() {
                         min: 150,
                         max: 225,
                         key: "height",
-                        value: 150,
+                        value: heightFilter,
+                        onValueChange: (value) => setHeightFilter(value),
                       },
                       {
                         label: "Width",
                         min: 25,
                         max: 100,
                         key: "width",
-                        value: 50,
+                        value: widthFilter,
+                        onValueChange: (value) => setWidthFilter(value),
                       },
                     ],
                   }}
