@@ -88,7 +88,7 @@ export default function ShirtSelection({
                   <img
                     src={`/uploads/${shirt.imageUrl}`}
                     alt={shirt.name}
-                    className="w-full h-40 object-cover"
+                    className="w-full h-32 object-contain"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedImage(shirt);

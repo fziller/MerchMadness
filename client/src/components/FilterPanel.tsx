@@ -69,9 +69,32 @@ export default function FilterPanel({
   const localMultiFilterConfig = multiFilterConfig || {};
 
   const handleReset = () => {
-    setInStock(false);
-    setSelectedSizes([]);
-    setPriceRange(DEFAULT_PRICE_RANGE);
+    if (multiFilterConfig) {
+      // Reset boolean filters
+      if (multiFilterConfig.booleanFilter) {
+        multiFilterConfig.booleanFilter.forEach(filter => {
+          filter.value = false;
+        });
+      }
+      
+      // Reset multi-select filters
+      if (multiFilterConfig.multiSelect) {
+        multiFilterConfig.multiSelect.forEach(filter => {
+          filter.onSelectOption([]);
+        });
+      }
+      
+      // Reset range sliders
+      if (multiFilterConfig.rangeSlider) {
+        multiFilterConfig.rangeSlider.forEach(filter => {
+          filter.value = filter.min;
+        });
+      }
+    }
+    
+    // Apply reset filters
+    onApplyFilters({});
+    onClose();
   };
 
   useEffect(() => console.log("Rerendering filter"), [localMultiFilterConfig]);
@@ -161,16 +184,20 @@ export default function FilterPanel({
               );
             })}
 
-            {multiFilterConfig?.rangeSlider?.map((sliderFilter) => (
-              <div className="space-y-4">
+            {multiFilterConfig?.rangeSlider?.map((sliderFilter, index) => (
+              <div key={sliderFilter.key} className="space-y-4">
                 <h3 className="font-medium">{sliderFilter.label}</h3>
                 <Slider
                   min={sliderFilter.min}
                   max={sliderFilter.max}
                   step={1}
-                  value={[sliderFilter.value]}
+                  defaultValue={[sliderFilter.value]}
                   onValueChange={(value) => {
-                    sliderFilter.value = value[0];
+                    const newFilters = { ...multiFilterConfig };
+                    if (newFilters.rangeSlider) {
+                      newFilters.rangeSlider[index].value = value[0];
+                    }
+                    onApplyFilters(newFilters);
                   }}
                   className="w-full"
                 />

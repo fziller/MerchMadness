@@ -134,7 +134,7 @@ export default function ModelSelection({
                             : `/uploads/${model.imageUrl}`
                         }
                         alt={model.name}
-                        className="w-full h-40 object-cover"
+                        className="w-full h-32 object-contain"
                         onClick={() => setSelectedImage(model)}
                       />
                     ) : (
