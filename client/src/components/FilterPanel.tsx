@@ -198,20 +198,40 @@ export default function FilterPanel({
                   min={sliderFilter.min}
                   max={sliderFilter.max}
                   step={1}
-                  value={[sliderFilter.value]}
+                  defaultValue={[sliderFilter.value]}
                   onValueChange={(value) => {
-                    const newFilters = { ...multiFilterConfig };
-                    if (newFilters.rangeSlider) {
-                      newFilters.rangeSlider[index].value = value[0];
-                      setIsOpen(true); // Keep panel open after change
-                    }
+                    sliderFilter.value = value[0];
                   }}
                   className="w-full"
                 />
+                <div className="text-center text-sm text-muted-foreground">
+                  Current value: {sliderFilter.value}
+                </div>
                 <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>{sliderFilter.value}</span>
+                  <span>{sliderFilter.min}</span>
                   <span>{sliderFilter.max}</span>
                 </div>
+              </div>
+            ))}
+
+            {multiFilterConfig?.singleSelect?.map((selectFilter) => (
+              <div key={selectFilter.key} className="space-y-2">
+                <h3 className="font-medium">{selectFilter.label}</h3>
+                <Select
+                  value={selectFilter.selectedOption}
+                  onValueChange={(value) => selectFilter.onSelectOption(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Select ${selectFilter.label.toLowerCase()}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectFilter.options.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             ))}
           </div>

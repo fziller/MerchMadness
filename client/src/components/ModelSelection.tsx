@@ -27,6 +27,7 @@ export default function ModelSelection({
   onToggleFilters,
 }: ModelSelectionProps) {
   const [selectedImage, setSelectedImage] = useState<Model | null>(null);
+  const [selectedGender, setSelectedGender] = useState(""); // Added state for gender filter
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: models } = useQuery<Model[]>({
@@ -67,21 +68,20 @@ export default function ModelSelection({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center">
-          <Select
-            onValueChange={(value) => {
-              const selectedModel =
-                models?.find((m) => m.gender === value) || null;
-              onSelect(selectedModel);
-            }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Choose gender" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="space-y-4 w-full">
+            <ActiveFilters filters={{
+              singleSelect: [{
+                label: "Gender",
+                selectedOption: selectedGender || "",
+                key: "gender"
+              }],
+              // Add other filter types here
+            }} onRemove={(type, key) => {
+              if (type === "singleSelect" && key === "gender") {
+                setSelectedGender("");
+              }
+            }} />
+          </div>
 
           <Button
             variant="outline"
@@ -134,7 +134,7 @@ export default function ModelSelection({
                             : `/uploads/${model.imageUrl}`
                         }
                         alt={model.name}
-                        className="w-full h-48 object-contain"
+                        className="w-full h-64 object-contain bg-white"
                         onClick={() => setSelectedImage(model)}
                       />
                     ) : (
