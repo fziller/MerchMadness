@@ -44,6 +44,13 @@ type FilterPanelProps = {
       onSelectOption: (selectedOptions: string[]) => void;
       key: string;
     }[];
+    singleSelect?: {
+      label: string;
+      options: string[];
+      selectedOption: string;
+      onSelectOption: (option: string) => void;
+      key: string;
+    }[];
     rangeSlider?: {
       label: string;
       min: number;
@@ -191,13 +198,13 @@ export default function FilterPanel({
                   min={sliderFilter.min}
                   max={sliderFilter.max}
                   step={1}
-                  defaultValue={[sliderFilter.value]}
+                  value={[sliderFilter.value]}
                   onValueChange={(value) => {
                     const newFilters = { ...multiFilterConfig };
                     if (newFilters.rangeSlider) {
                       newFilters.rangeSlider[index].value = value[0];
+                      setIsOpen(true); // Keep panel open after change
                     }
-                    onApplyFilters(newFilters);
                   }}
                   className="w-full"
                 />
