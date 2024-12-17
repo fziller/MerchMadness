@@ -110,12 +110,6 @@ export default function ModelSelection({
                   />
                 );
               }
-              console.log(
-                "Single model info:",
-                model,
-                import.meta.env.BASE_URL + model.imageUrl,
-                import.meta.env,
-              );
               return (
                 <div
                   key={model.id}

@@ -21,8 +21,10 @@ export default function HomePage() {
   >(null);
   const [modelFilters, setModelFilters] = useState<any>(null);
   const [shirtFilters, setShirtFilters] = useState<any>(null);
+  const [modelGenre, setModelGenre] = useState<string[]>([]);
+  const [modelEvent, setModelEvent] = useState<string[]>([]);
 
-  console.log({ showShirtFilters, showModelFilters });
+  console.log({ showShirtFilters, showModelFilters, modelGenre, modelEvent });
 
   const handleModelFilters = (filters: any) => {
     setModelFilters(filters);
@@ -33,13 +35,11 @@ export default function HomePage() {
   };
 
   const toggleModelFilters = () => {
-    console.log("Toggling model filters");
     setShowModelFilters((prev) => !prev);
     setShowShirtFilters(false); // Close other filter panel
   };
 
   const toggleShirtFilters = () => {
-    console.log("Toggling shirt filters");
     setShowShirtFilters((prev) => !prev);
     setShowModelFilters(false); // Close other filter panel
   };
@@ -105,33 +105,55 @@ export default function HomePage() {
                   onClose={() => setShowModelFilters(false)}
                   multiFilterConfig={{
                     booleanFilter: [
-                      {label: "Gender" , options: ["Male", "Female"], key: "gender", value: true}
-                    ], 
-                    multiSelect: [{
-                      label: "Genre",
-                      options: ["Fashion", "Streetwear", "Casual", "Sports", "Cosplay"],
-                      key: "genre",
-                      selectedOptions: []
-                    },
-                    {
-                                   label: "Event",
-                                   options: ["Christmans", "Easter", "Wacken"],
-                                   key: "event",
-                                   selectedOptions: []
-                                 
-                  }]}
-                  filterConfig={{
-                    multiSelect: {
-                      label: "Gender",
-                      options: ["male", "female"],
-                      key: "gender",
-                    },
-                    slider: {
-                      label: "Height",
-                      min: 150,
-                      max: 200,
-                      key: "height",
-                    },
+                      {
+                        label: "Gender",
+                        options: ["Male", "Female"],
+                        key: "gender",
+                        value: true,
+                      },
+                    ],
+                    multiSelect: [
+                      {
+                        label: "Genre",
+                        options: [
+                          "Fashion",
+                          "Streetwear",
+                          "Casual",
+                          "Sports",
+                          "Cosplay",
+                        ],
+                        key: "genre",
+                        selectedOptions: modelGenre,
+                        onSelectOption: (option) => {
+                          console.log("Selected option:", option);
+                          setModelGenre(option);
+                          console.log(modelGenre);
+                        },
+                      },
+                      {
+                        label: "Event",
+                        options: ["Christmas", "Easter", "Wacken"],
+                        key: "event",
+                        selectedOptions: modelEvent,
+                        onSelectOption: (option) => setModelEvent(option),
+                      },
+                    ],
+                    rangeSlider: [
+                      {
+                        label: "Height",
+                        min: 150,
+                        max: 225,
+                        key: "height",
+                        value: 150,
+                      },
+                      {
+                        label: "Width",
+                        min: 25,
+                        max: 100,
+                        key: "width",
+                        value: 50,
+                      },
+                    ],
                   }}
                 />
               )}
