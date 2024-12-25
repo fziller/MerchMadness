@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,6 +15,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import {
+  ModelEvent,
+  ModelGender,
+  ModelGenre,
+  TagModelEvent,
+  TagModelGender,
+  TagModelGenre,
+  TagModelHeight,
+  TagModelWidth,
+} from "./filter/FilterEnums";
+import MultiSelectFilter from "./filter/MultiSelectFilter";
+import { RangleSliderFilter } from "./filter/RangeSliderFilter";
+import SingleSelectFilter from "./filter/SingleSelectFilter";
 
 type UploadModalProps = {
   type: "model" | "shirt";
@@ -26,8 +39,11 @@ type UploadModalProps = {
 type ModelData = {
   name?: string;
   image?: object;
-  height?: number;
-  gender?: "male" | "female";
+  height: number;
+  width: number;
+  gender: ModelGender;
+  event: ModelEvent[];
+  genre: ModelGenre[];
 };
 
 type ShirtData = {
@@ -43,16 +59,31 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  console.log("formData for upload", { formData });
+
+  useEffect(() => {
+    if (type === "model") {
+      setFormData({
+        ...formData,
+        gender: TagModelGender.options[0],
+        height: TagModelHeight.min,
+        width: TagModelWidth.min,
+      });
+    }
+  }, []);
+
   const uploadMutation = useMutation({
     mutationFn: async () => {
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === 'image' && value instanceof File) {
-          form.append('image', value);
+        if (key === "image" && value instanceof File) {
+          form.append("image", value);
         } else {
           form.append(key, String(value));
         }
       });
+
+      console.log("The form we are going to upload", form);
 
       const response = await fetch(`/api/${type}s`, {
         method: "POST",
@@ -108,38 +139,69 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
 
           {type === "model" ? (
             <>
-              <div className="space-y-2">
-                <Label>Gender</Label>
-                <Select
-                  onValueChange={(value) => {
-                    setFormData({
-                      ...formData,
-                      gender: value as "male" | "female",
-                    });
-                  }}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Height (cm)</Label>
-                <Input
-                  type="number"
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      height: Number(e.target.value),
-                    });
-                  }}
-                />
-              </div>
+              {/* Gender Selection */}
+              <SingleSelectFilter
+                key={TagModelGender.key}
+                selectedOption={TagModelGender.options[0]}
+                options={TagModelGender.options}
+                onSelectOption={(value) => {
+                  setFormData({
+                    ...formData,
+                    gender: value.toString() as ModelGender,
+                  });
+                }}
+                label={TagModelGender.label}
+              />
+              <RangleSliderFilter
+                key={TagModelHeight.key}
+                label={TagModelHeight.label}
+                min={TagModelHeight.min}
+                max={TagModelHeight.max}
+                startValue={TagModelHeight.min}
+                onValueChange={(changedValue) =>
+                  setFormData({
+                    ...formData,
+                    height: changedValue,
+                  })
+                }
+              />
+              <RangleSliderFilter
+                key={TagModelWidth.key}
+                label={TagModelWidth.label}
+                min={TagModelWidth.min}
+                max={TagModelWidth.max}
+                startValue={TagModelWidth.min}
+                onValueChange={(changedValue) =>
+                  setFormData({
+                    ...formData,
+                    width: changedValue,
+                  })
+                }
+              />
+              <MultiSelectFilter
+                key={TagModelEvent.key}
+                label={TagModelEvent.label}
+                options={TagModelEvent.options}
+                selectedOptions={[]}
+                onSelectOption={(selectedOptions) => {
+                  setFormData({
+                    ...formData,
+                    event: selectedOptions as ModelEvent[],
+                  });
+                }}
+              />
+              <MultiSelectFilter
+                key={TagModelGenre.key}
+                label={TagModelGenre.label}
+                options={TagModelGenre.options}
+                selectedOptions={[]}
+                onSelectOption={(selectedOptions) => {
+                  setFormData({
+                    ...formData,
+                    genre: selectedOptions as ModelGenre[],
+                  });
+                }}
+              />
             </>
           ) : (
             <>

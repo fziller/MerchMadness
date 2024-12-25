@@ -1,13 +1,13 @@
-import passport from "passport";
-import { IVerifyOptions, Strategy as LocalStrategy } from "passport-local";
+import { db } from "@db";
+import { users } from "@db/schema";
+import { randomBytes, scrypt, timingSafeEqual } from "crypto";
+import { eq } from "drizzle-orm";
 import { type Express } from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import passport from "passport";
+import { IVerifyOptions, Strategy as LocalStrategy } from "passport-local";
 import { promisify } from "util";
-import { users, type User } from "@db/schema";
-import { db } from "@db";
-import { eq } from "drizzle-orm";
 
 const scryptAsync = promisify(scrypt);
 const crypto = {
@@ -59,12 +59,17 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
+      console.log("Even earlier?", username, password);
       try {
+        console.log("Starting db query", {
+          user: await db.select().from(users),
+        });
         const [user] = await db
           .select()
           .from(users)
           .where(eq(users.username, username))
           .limit(1);
+        console.log("user?", { user });
 
         if (!user) {
           return done(null, false, { message: "Incorrect username." });
@@ -75,6 +80,7 @@ export function setupAuth(app: Express) {
         }
         return done(null, user);
       } catch (err) {
+        console.log("error in passport", err);
         return done(err);
       }
     })
@@ -124,14 +130,20 @@ export function setupAuth(app: Express) {
 
       req.login(newUser, (err) => {
         if (err) {
+          console.log("Showing an error", { err });
           return next(err);
         }
         return res.json({
           message: "Registration successful",
-          user: { id: newUser.id, username: newUser.username, isAdmin: newUser.isAdmin },
+          user: {
+            id: newUser.id,
+            username: newUser.username,
+            isAdmin: newUser.isAdmin,
+          },
         });
       });
     } catch (error) {
+      console.log("Error in register", { error });
       next(error);
     }
   });

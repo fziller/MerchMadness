@@ -1,13 +1,13 @@
-import type { Express, Request, Response, NextFunction } from "express";
-import { createServer, type Server } from "http";
-import { setupAuth } from "./auth";
 import { db } from "@db";
-import { models, shirts, combinedImages } from "@db/schema";
+import { combinedImages, models, shirts } from "@db/schema";
 import { eq } from "drizzle-orm";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import fs from "fs";
+import type { Express } from "express";
 import express from "express";
+import fs from "fs";
+import { createServer, type Server } from "http";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import { setupAuth } from "./auth";
 
 // ES modules compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -48,20 +48,21 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/models", upload.single("image"), async (req, res) => {
     try {
-      const { name, gender, metadata } = req.body;
       if (!req.file) {
         return res.status(400).send("No image file uploaded");
       }
 
       const imageUrl = `/uploads/${req.file.filename}`;
+      console.log("req.body", req.body);
+      const metadata = { ...req.body, name: undefined, image_url: undefined };
+      console.log("metadata", metadata);
 
       const [newModel] = await db
         .insert(models)
         .values({
-          name,
-          gender,
-          imageUrl,
-          metadata: metadata ? JSON.parse(metadata) : null,
+          name: req.body.name,
+          imageUrl: imageUrl,
+          metadata: metadata,
         })
         .returning();
 
@@ -86,7 +87,12 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Delete the physical file
-      const filePath = join(__dirname, "..", "public", model.imageUrl.replace(/^\/uploads\//, ""));
+      const filePath = join(
+        __dirname,
+        "..",
+        "public",
+        model.imageUrl.replace(/^\/uploads\//, "")
+      );
       try {
         await fs.promises.unlink(filePath);
       } catch (err) {
@@ -95,9 +101,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Delete from database
-      await db
-        .delete(models)
-        .where(eq(models.id, parseInt(req.params.id)));
+      await db.delete(models).where(eq(models.id, parseInt(req.params.id)));
 
       res.json({ message: "Model deleted successfully" });
     } catch (error) {
@@ -151,7 +155,12 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Delete the physical file
-      const filePath = join(__dirname, "..", "public", shirt.imageUrl.replace(/^\/uploads\//, ""));
+      const filePath = join(
+        __dirname,
+        "..",
+        "public",
+        shirt.imageUrl.replace(/^\/uploads\//, "")
+      );
       try {
         await fs.promises.unlink(filePath);
       } catch (err) {
@@ -160,9 +169,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Delete from database
-      await db
-        .delete(shirts)
-        .where(eq(shirts.id, parseInt(req.params.id)));
+      await db.delete(shirts).where(eq(shirts.id, parseInt(req.params.id)));
 
       res.json({ message: "Shirt deleted successfully" });
     } catch (error) {

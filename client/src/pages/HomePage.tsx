@@ -1,13 +1,20 @@
-import { useState } from "react";
-import type { Model, Shirt } from "@db/schema";
-import { useUser } from "@/hooks/use-user";
-import ModelSelection from "@/components/ModelSelection";
-import ShirtSelection from "@/components/ShirtSelection";
-import ResultsArea from "@/components/ResultsArea";
-import UploadModal from "@/components/UploadModal";
+import {
+  ModelEvent,
+  ModelGender,
+  ModelGenre,
+  TagModelHeight,
+  TagModelWidth,
+} from "@/components/filter/FilterEnums";
 import FilterPanel from "@/components/FilterPanel";
+import ModelSelection from "@/components/ModelSelection";
+import ResultsArea from "@/components/ResultsArea";
+import ShirtSelection from "@/components/ShirtSelection";
 import { Button } from "@/components/ui/button";
+import UploadModal from "@/components/UploadModal";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/use-user";
+import type { Model, Shirt } from "@db/schema";
+import { useState } from "react";
 
 export default function HomePage() {
   const { user, logout } = useUser();
@@ -21,19 +28,25 @@ export default function HomePage() {
   >(null);
   const [modelFilters, setModelFilters] = useState<any>(null);
   const [shirtFilters, setShirtFilters] = useState<any>(null);
-  const [modelGenre, setModelGenre] = useState<string[]>([]);
-  const [modelEvent, setModelEvent] = useState<string[]>([]);
+
+  const [modelGenre, setModelGenre] = useState<ModelGenre[]>([]);
+  const [modelEvent, setModelEvent] = useState<ModelEvent[]>([]);
+  const [modelGender, setModelGender] = useState<ModelGender>(ModelGender.MALE);
   const [heightFilter, setHeightFilter] = useState<number>(100);
   const [widthFilter, setWidthFilter] = useState<number>(50);
 
-  console.log({ showShirtFilters, showModelFilters, modelGenre, modelEvent });
-
-  const handleModelFilters = (filters: any) => {
-    setModelFilters(filters);
+  const handleModelFilters = () => {
+    setModelFilters({
+      gender: modelGender,
+      height: heightFilter,
+      width: widthFilter,
+      genre: modelGenre,
+      event: modelEvent,
+    });
   };
 
-  const handleShirtFilters = (filters: any) => {
-    setShirtFilters(filters);
+  const handleShirtFilters = () => {
+    setShirtFilters({});
   };
 
   const toggleModelFilters = () => {
@@ -50,7 +63,7 @@ export default function HomePage() {
     setSelectedModel(model);
     if (model) {
       alert(
-        `Selected model with filters: ${JSON.stringify(modelFilters || {})}`,
+        `Selected model with filters: ${JSON.stringify(modelFilters || {})}`
       );
     }
   };
@@ -59,7 +72,7 @@ export default function HomePage() {
     setSelectedShirt(shirt);
     if (shirt) {
       alert(
-        `Selected shirt with filters: ${JSON.stringify(shirtFilters || {})}`,
+        `Selected shirt with filters: ${JSON.stringify(shirtFilters || {})}`
       );
     }
   };
@@ -106,35 +119,26 @@ export default function HomePage() {
                   title="Model Filters"
                   onClose={() => setShowModelFilters(false)}
                   multiFilterConfig={{
-                    booleanFilter: [
+                    singleSelect: [
                       {
                         label: "Gender",
-                        options: ["Male", "Female"],
+                        options: Object.values(ModelGender),
                         key: "gender",
-                        value: true,
+                        onSelectOption: (option) => setModelGender(option),
+                        selectedOption: modelGender,
                       },
                     ],
                     multiSelect: [
                       {
                         label: "Genre",
-                        options: [
-                          "Fashion",
-                          "Streetwear",
-                          "Casual",
-                          "Sports",
-                          "Cosplay",
-                        ],
+                        options: Object.values(ModelGenre),
                         key: "genre",
                         selectedOptions: modelGenre,
-                        onSelectOption: (option) => {
-                          console.log("Selected option:", option);
-                          setModelGenre(option);
-                          console.log(modelGenre);
-                        },
+                        onSelectOption: (option) => setModelGenre(option),
                       },
                       {
                         label: "Event",
-                        options: ["Christmas", "Easter", "Wacken"],
+                        options: Object.values(ModelEvent),
                         key: "event",
                         selectedOptions: modelEvent,
                         onSelectOption: (option) => setModelEvent(option),
@@ -142,19 +146,14 @@ export default function HomePage() {
                     ],
                     rangeSlider: [
                       {
-                        label: "Height",
-                        min: 150,
-                        max: 225,
-                        key: "height",
-                        value: heightFilter,
+                        ...TagModelHeight,
+                        startValue: heightFilter,
                         onValueChange: (value) => setHeightFilter(value),
                       },
+
                       {
-                        label: "Width",
-                        min: 25,
-                        max: 100,
-                        key: "width",
-                        value: widthFilter,
+                        ...TagModelWidth,
+                        startValue: widthFilter,
                         onValueChange: (value) => setWidthFilter(value),
                       },
                     ],
@@ -166,20 +165,6 @@ export default function HomePage() {
                   title="Shirt Filters"
                   onApplyFilters={handleShirtFilters}
                   onClose={() => setShowShirtFilters(false)}
-                  filterConfig={{
-                    booleanFilter: { label: "In Stock", key: "inStock" },
-                    multiSelect: {
-                      label: "Size",
-                      options: ["XS", "S", "M", "L", "XL"],
-                      key: "size",
-                    },
-                    slider: {
-                      label: "Price",
-                      min: 0,
-                      max: 100,
-                      key: "price",
-                    },
-                  }}
                 />
               )}
             </div>
@@ -192,6 +177,7 @@ export default function HomePage() {
               onSelect={handleModelSelection}
               selected={selectedModel}
               onToggleFilters={toggleModelFilters}
+              modelFilters={modelFilters}
             />
             <ShirtSelection
               onSelect={handleShirtSelection}

@@ -1,27 +1,29 @@
-import { pgTable, text, serial, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
+import {
+  boolean,
+  jsonb,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").unique().notNull(),
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const models = pgTable("models", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  gender: text("gender").notNull(),
   imageUrl: text("image_url").notNull(),
-  metadata: jsonb("metadata").$type<{
-    height?: string;
-    size?: string;
-    ethnicity?: string;
-  }>(),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const shirts = pgTable("shirts", {
@@ -34,7 +36,7 @@ export const shirts = pgTable("shirts", {
     style?: string;
   }>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const combinedImages = pgTable("combined_images", {
@@ -42,7 +44,7 @@ export const combinedImages = pgTable("combined_images", {
   modelId: serial("model_id").references(() => models.id),
   shirtId: serial("shirt_id").references(() => shirts.id),
   resultUrl: text("result_url").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const combinedImagesRelations = relations(combinedImages, ({ one }) => ({

@@ -20,27 +20,42 @@ This project is a comprehensive e-commerce web application specialized in clothi
 
 1. Clone the repository
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
-Create a `.env` file in the root directory with the following variables:
+   Create a `.env` file in the root directory with the following variables:
+
 ```env
-DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+DATABASE_URL=postgresql://fziller@localhost:5432/merchmadness
 ```
 
+3.1 Install Postgres
+
+- via Brew or via installer
+  psql -U your_username -d postgres
+  CREATE DATABASE merchmadness;
+
 4. Initialize the database:
+
 ```bash
 npm run db:push
 ```
 
+4.1
+psql -U your_username -d postgres
+\c merchmadness
+INSERT INTO users(id, username, password, is_admin, created_at) VALUES (12345, 'fziller', 'fziller', true, '2013-01-01 08:45:00 PST');
+
 5. Start the development server:
+
 ```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:5000`
+The application will be available at `http://localhost:12345`
 
 ## Project Structure
 
@@ -59,6 +74,7 @@ The application will be available at `http://localhost:5000`
 ## Technology Stack
 
 - Frontend:
+
   - React.js with TypeScript
   - TanStack Query for data fetching
   - Tailwind CSS for styling

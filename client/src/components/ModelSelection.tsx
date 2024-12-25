@@ -1,32 +1,91 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { SlidersHorizontal, Trash2 } from "lucide-react";
-import type { Model } from "@db/schema";
 import { useToast } from "@/hooks/use-toast";
-import ImageViewModal from "./ImageViewModal";
+import type { Model } from "@db/schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { SlidersHorizontal, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
+import ImageViewModal from "./ImageViewModal";
 
 type ModelSelectionProps = {
   onSelect: (model: Model | null) => void;
   selected: Model | null;
   onToggleFilters: () => void; // Changed to non-optional
+  modelFilters?: any;
 };
 
 export default function ModelSelection({
   onSelect,
   selected,
   onToggleFilters,
+  modelFilters,
 }: ModelSelectionProps) {
   const [selectedImage, setSelectedImage] = useState<Model | null>(null);
   const [selectedGender, setSelectedGender] = useState(""); // Added state for gender filter
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const { data: models } = useQuery<Model[]>({
     queryKey: ["/api/models"],
   });
+  const [filteredModels, setFilteredModels] = useState<Model[]>(models || []);
+
+  // We need to filter the models based on the selected filter
+  console.log({ models, filteredModels, modelFilters });
+
+  useEffect(() => {
+    setFilteredModels(
+      models
+        ? !modelFilters
+          ? models
+          : models.filter((model) => {
+              let filtered = false;
+              for (const key in modelFilters) {
+                // We need to differentiate here between different types of filters.
+                console.log(
+                  "Starting to generally filter for ",
+                  key,
+                  modelFilters[key],
+                  typeof modelFilters[key] === "string"
+                );
+                if (typeof modelFilters[key] === "string") {
+                  if (modelFilters[key] !== model.metadata?.[key]) {
+                    console.log(
+                      "String filter does not match, setting filter to false"
+                    );
+                    filtered = true;
+                    break;
+                  }
+                }
+                if (typeof modelFilters[key] === "number") {
+                  if (model.metadata?.[key] < modelFilters[key]) {
+                    filtered = true;
+                    break;
+                  }
+                }
+                // if (typeof modelFilters[key] === "number") {
+                //   console.log(
+                //     "Number filtering for ",
+                //     key,
+                //     model.metadata?.[key] < modelFilters[key]
+                //   );
+                //   if (model.metadata?.[key] < modelFilters[key]) return false;
+                // }
+                // if (Array.isArray(modelFilters[key])) {
+                //   console.log("Array filtering for ", key);
+                //   modelFilters[key].forEach((filter) => {
+                //     if (model.metadata?.[key] !== filter) return false;
+                //   });
+                // }
+              }
+              console.log("model", model.name, "filtered", !filtered);
+              return !filtered;
+            })
+        : []
+    );
+  }, [models, modelFilters]);
 
   const deleteMutation = useMutation({
     mutationFn: async (modelId: number) => {
@@ -95,7 +154,7 @@ export default function ModelSelection({
 
         <ScrollArea className="h-[400px]">
           <div className="grid grid-cols-2 gap-2">
-            {models?.map((model) => {
+            {filteredModels?.map((model) => {
               {
                 selectedImage && (
                   <ImageViewModal
@@ -149,7 +208,7 @@ export default function ModelSelection({
                         e.stopPropagation();
                         if (
                           window.confirm(
-                            "Are you sure you want to delete this model?",
+                            "Are you sure you want to delete this model?"
                           )
                         ) {
                           deleteMutation.mutate(model.id);
