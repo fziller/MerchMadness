@@ -45,9 +45,13 @@ npm run db:push
 ```
 
 4.1
+Manually adding a user to login (should not be necessary):
+
+```bash
 psql -U your_username -d postgres
 \c merchmadness
 INSERT INTO users(id, username, password, is_admin, created_at) VALUES (12345, 'fziller', 'fziller', true, '2013-01-01 08:45:00 PST');
+```
 
 5. Start the development server:
 

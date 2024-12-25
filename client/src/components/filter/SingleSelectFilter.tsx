@@ -1,5 +1,4 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
 
 export type SingleSelectFilterProps = {
   selectedOption: string;
@@ -10,9 +9,7 @@ export type SingleSelectFilterProps = {
 };
 
 export default function SingleSelectFilter(props: SingleSelectFilterProps) {
-  const [actualSingleSelectValue, setActualSingleSelectValue] = useState(
-    props.selectedOption
-  );
+  console.log("SingleSelectFilter", { props });
   return (
     <div className="space-y-2">
       <h3 className="font-medium">{props.label}</h3>
@@ -21,10 +18,9 @@ export default function SingleSelectFilter(props: SingleSelectFilterProps) {
           <div key={option} className="flex items-center space-x-2">
             <Checkbox
               id={`${props.label}-${option}-2`}
-              checked={option === actualSingleSelectValue}
+              checked={option === props.selectedOption}
               onCheckedChange={() => {
                 props.onSelectOption(option);
-                setActualSingleSelectValue(option);
               }}
             />
             <label htmlFor={`option-${option}-2`}>{option}</label>

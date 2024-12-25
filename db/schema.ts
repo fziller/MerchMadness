@@ -30,11 +30,7 @@ export const shirts = pgTable("shirts", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
-  metadata: jsonb("metadata").$type<{
-    color?: string;
-    size?: string;
-    style?: string;
-  }>(),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

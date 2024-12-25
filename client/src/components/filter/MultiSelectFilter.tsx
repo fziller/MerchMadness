@@ -11,12 +11,14 @@ type MultiSelectProps = {
 
 export default function MultiSelectFilter(props: MultiSelectProps) {
   const [selectedOptions, setSelectedOptions] = useState(props.selectedOptions);
-  console.log({ props });
+  console.log({ props, selectedOptions });
   return (
     <div className="space-y-2">
       <h3 className="font-medium">{props.label}</h3>
       <div className="grid grid-cols-2 gap-2">
         {props.options.map((option) => {
+          console.log("before includes", { props, selectedOptions, option });
+
           let isChecked = selectedOptions.includes(option);
           return (
             <div key={option} className="flex items-center space-x-2">
@@ -25,8 +27,8 @@ export default function MultiSelectFilter(props: MultiSelectProps) {
                 checked={isChecked}
                 onCheckedChange={() => {
                   const newSelectedOptions = isChecked
-                    ? props.selectedOptions.filter((s) => s !== option)
-                    : [...props.selectedOptions, option];
+                    ? selectedOptions.filter((s) => s !== option)
+                    : [...selectedOptions, option];
                   props.onSelectOption(newSelectedOptions);
                   setSelectedOptions(newSelectedOptions);
                 }}

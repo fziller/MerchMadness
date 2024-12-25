@@ -7,13 +7,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -26,6 +19,8 @@ import {
   TagModelGenre,
   TagModelHeight,
   TagModelWidth,
+  TagShirtColor,
+  TagShirtSize,
 } from "./filter/FilterEnums";
 import MultiSelectFilter from "./filter/MultiSelectFilter";
 import { RangleSliderFilter } from "./filter/RangeSliderFilter";
@@ -41,7 +36,7 @@ type ModelData = {
   image?: object;
   height: number;
   width: number;
-  gender: ModelGender;
+  gender: ModelGender | undefined;
   event: ModelEvent[];
   genre: ModelGenre[];
 };
@@ -50,8 +45,8 @@ type ShirtData = {
   name?: string;
   image?: object;
   height?: number;
-  size?: string;
-  price?: number;
+  size: string[];
+  color: string[];
 };
 
 export default function UploadModal({ type, onClose }: UploadModalProps) {
@@ -65,9 +60,18 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
     if (type === "model") {
       setFormData({
         ...formData,
-        gender: TagModelGender.options[0],
+        gender: undefined,
         height: TagModelHeight.min,
         width: TagModelWidth.min,
+        event: [],
+        genre: [],
+      });
+    }
+    if (type === "shirt") {
+      setFormData({
+        ...formData,
+        size: [],
+        color: [],
       });
     }
   }, []);
@@ -142,7 +146,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
               {/* Gender Selection */}
               <SingleSelectFilter
                 key={TagModelGender.key}
-                selectedOption={TagModelGender.options[0]}
+                selectedOption={formData.gender}
                 options={TagModelGender.options}
                 onSelectOption={(value) => {
                   setFormData({
@@ -182,7 +186,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 key={TagModelEvent.key}
                 label={TagModelEvent.label}
                 options={TagModelEvent.options}
-                selectedOptions={[]}
+                selectedOptions={formData.event}
                 onSelectOption={(selectedOptions) => {
                   setFormData({
                     ...formData,
@@ -205,36 +209,24 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
             </>
           ) : (
             <>
-              <div className="space-y-2">
-                <Label>Size</Label>
-                <Select
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, size: value })
-                  }
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["XS", "S", "M", "L", "XL"].map((size) => (
-                      <SelectItem key={size} value={size}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Price ($)</Label>
-                <Input
-                  type="number"
-                  onChange={(e) =>
-                    setFormData({ ...formData, price: Number(e.target.value) })
-                  }
-                  required
-                />
-              </div>
+              <MultiSelectFilter
+                key={TagShirtSize.key}
+                selectedOptions={[]}
+                options={TagShirtSize.options}
+                onSelectOption={(selectedOptions) => {
+                  setFormData({ ...formData, size: selectedOptions });
+                }}
+                label={TagShirtSize.label}
+              />
+              <MultiSelectFilter
+                key={TagShirtColor.key}
+                selectedOptions={[]}
+                options={TagShirtColor.options}
+                onSelectOption={(selectedOptions) => {
+                  setFormData({ ...formData, color: selectedOptions });
+                }}
+                label={TagShirtColor.label}
+              />
             </>
           )}
 

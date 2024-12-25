@@ -55,9 +55,12 @@ export default function FilterPanel({
           filter.startValue = filter.min;
         });
       }
+      // Reset Single select filter
       if (multiFilterConfig.singleSelect) {
         multiFilterConfig.singleSelect.forEach((filter) => {
-          filter.selectedOption = filter.options[0];
+          console.log("Resetting for filter ", filter);
+          filter.onSelectOption(undefined);
+          filter.selectedOption = undefined;
         });
       }
     }

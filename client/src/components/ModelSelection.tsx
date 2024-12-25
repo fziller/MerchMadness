@@ -44,12 +44,6 @@ export default function ModelSelection({
               let filtered = false;
               for (const key in modelFilters) {
                 // We need to differentiate here between different types of filters.
-                console.log(
-                  "Starting to generally filter for ",
-                  key,
-                  modelFilters[key],
-                  typeof modelFilters[key] === "string"
-                );
                 if (typeof modelFilters[key] === "string") {
                   if (modelFilters[key] !== model.metadata?.[key]) {
                     console.log(
@@ -65,23 +59,15 @@ export default function ModelSelection({
                     break;
                   }
                 }
-                // if (typeof modelFilters[key] === "number") {
-                //   console.log(
-                //     "Number filtering for ",
-                //     key,
-                //     model.metadata?.[key] < modelFilters[key]
-                //   );
-                //   if (model.metadata?.[key] < modelFilters[key]) return false;
-                // }
-                // if (Array.isArray(modelFilters[key])) {
-                //   console.log("Array filtering for ", key);
-                //   modelFilters[key].forEach((filter) => {
-                //     if (model.metadata?.[key] !== filter) return false;
-                //   });
-                // }
+                if (Array.isArray(modelFilters[key])) {
+                  if (!modelFilters[key].includes(model.metadata?.[key])) {
+                    filtered = true;
+                    break;
+                  }
+                }
+                console.log("model", model.name, "filtered", !filtered);
+                return !filtered;
               }
-              console.log("model", model.name, "filtered", !filtered);
-              return !filtered;
             })
         : []
     );

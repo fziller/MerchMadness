@@ -77,6 +77,29 @@ export const TagModelWidth: RangeTag = {
   key: "width",
 };
 
+export const TagShirtSize: SelectTag = {
+  type: "multiSelect",
+  label: "Size",
+  options: ["XS", "S", "M", "L", "XL", "XXL"],
+  key: "size",
+};
+
+export const TagShirtColor: SelectTag = {
+  type: "multiSelect",
+  label: "Color",
+  options: [
+    "Red",
+    "Blue",
+    "Green",
+    "Yellow",
+    "Orange",
+    "Purple",
+    "Black",
+    "White",
+  ],
+  key: "color",
+};
+
 export function isEnumValue<T extends {}>(
   enumType: T,
   value: unknown
@@ -100,9 +123,9 @@ export type FilterConfig = {
   }[];
   singleSelect?: {
     label: string;
-    options: ModelGender[];
-    selectedOption: ModelGender;
-    onSelectOption: (option: ModelGender) => void;
+    options: any[];
+    selectedOption?: any;
+    onSelectOption: (option: any) => void;
     key: string;
   }[];
   rangeSlider?: {

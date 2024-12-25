@@ -53,10 +53,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       const imageUrl = `/uploads/${req.file.filename}`;
-      console.log("req.body", req.body);
       const metadata = { ...req.body, name: undefined, image_url: undefined };
-      console.log("metadata", metadata);
-
       const [newModel] = await db
         .insert(models)
         .values({
@@ -118,19 +115,21 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/shirts", upload.single("image"), async (req, res) => {
     try {
-      const { name, metadata } = req.body;
+      const { name } = req.body;
       if (!req.file) {
         return res.status(400).send("No image file uploaded");
       }
 
       const imageUrl = `/uploads/${req.file.filename}`;
 
+      const metadata = { ...req.body, name: undefined, image_url: undefined };
+
       const [newShirt] = await db
         .insert(shirts)
         .values({
           name,
           imageUrl,
-          metadata: metadata ? JSON.parse(metadata) : null,
+          metadata,
         })
         .returning();
 

@@ -4,6 +4,8 @@ import {
   ModelGenre,
   TagModelHeight,
   TagModelWidth,
+  TagShirtColor,
+  TagShirtSize,
 } from "@/components/filter/FilterEnums";
 import FilterPanel from "@/components/FilterPanel";
 import ModelSelection from "@/components/ModelSelection";
@@ -29,11 +31,18 @@ export default function HomePage() {
   const [modelFilters, setModelFilters] = useState<any>(null);
   const [shirtFilters, setShirtFilters] = useState<any>(null);
 
+  // Needed for filtering models
   const [modelGenre, setModelGenre] = useState<ModelGenre[]>([]);
   const [modelEvent, setModelEvent] = useState<ModelEvent[]>([]);
-  const [modelGender, setModelGender] = useState<ModelGender>(ModelGender.MALE);
+  const [modelGender, setModelGender] = useState<ModelGender | undefined>(
+    undefined
+  );
   const [heightFilter, setHeightFilter] = useState<number>(100);
   const [widthFilter, setWidthFilter] = useState<number>(50);
+
+  // Needed for filtering Shirts
+  const [shirtSize, setShirtSize] = useState<string[]>([]);
+  const [shirtColors, setShirtColors] = useState<string[]>([]);
 
   const handleModelFilters = () => {
     setModelFilters({
@@ -44,6 +53,7 @@ export default function HomePage() {
       event: modelEvent,
     });
   };
+  console.log("Homepage", { modelFilters, modelGender });
 
   const handleShirtFilters = () => {
     setShirtFilters({});
@@ -165,6 +175,24 @@ export default function HomePage() {
                   title="Shirt Filters"
                   onApplyFilters={handleShirtFilters}
                   onClose={() => setShowShirtFilters(false)}
+                  multiFilterConfig={{
+                    multiSelect: [
+                      {
+                        ...TagShirtSize,
+                        label: TagShirtSize.label,
+                        key: TagShirtSize.key,
+                        selectedOptions: shirtSize,
+                        onSelectOption: (option) => setShirtSize(option),
+                      },
+                      {
+                        ...TagShirtColor,
+                        label: TagShirtColor.label,
+                        key: TagShirtColor.key,
+                        selectedOptions: shirtColors,
+                        onSelectOption: (option) => setShirtColors(option),
+                      },
+                    ],
+                  }}
                 />
               )}
             </div>
