@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { filterByType } from "@/lib/utils";
 import type { Model } from "@db/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
@@ -12,8 +13,8 @@ import ImageViewModal from "./ImageViewModal";
 type ModelSelectionProps = {
   onSelect: (model: Model | null) => void;
   selected: Model | null;
-  onToggleFilters: () => void; // Changed to non-optional
-  modelFilters?: any;
+  onToggleFilters: () => void;
+  modelFilters?: { [key: string]: string | number | string[] };
 };
 
 export default function ModelSelection({
@@ -23,9 +24,9 @@ export default function ModelSelection({
   modelFilters,
 }: ModelSelectionProps) {
   const [selectedImage, setSelectedImage] = useState<Model | null>(null);
-  const [selectedGender, setSelectedGender] = useState(""); // Added state for gender filter
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [changeFilterValue, setChangeFilterValue] = useState(false);
 
   const { data: models } = useQuery<Model[]>({
     queryKey: ["/api/models"],
@@ -40,38 +41,10 @@ export default function ModelSelection({
       models
         ? !modelFilters
           ? models
-          : models.filter((model) => {
-              let filtered = false;
-              for (const key in modelFilters) {
-                // We need to differentiate here between different types of filters.
-                if (typeof modelFilters[key] === "string") {
-                  if (modelFilters[key] !== model.metadata?.[key]) {
-                    console.log(
-                      "String filter does not match, setting filter to false"
-                    );
-                    filtered = true;
-                    break;
-                  }
-                }
-                if (typeof modelFilters[key] === "number") {
-                  if (model.metadata?.[key] < modelFilters[key]) {
-                    filtered = true;
-                    break;
-                  }
-                }
-                if (Array.isArray(modelFilters[key])) {
-                  if (!modelFilters[key].includes(model.metadata?.[key])) {
-                    filtered = true;
-                    break;
-                  }
-                }
-                console.log("model", model.name, "filtered", !filtered);
-                return !filtered;
-              }
-            })
+          : models.filter((model) => filterByType(modelFilters, model))
         : []
     );
-  }, [models, modelFilters]);
+  }, [models, modelFilters, changeFilterValue]);
 
   const deleteMutation = useMutation({
     mutationFn: async (modelId: number) => {
@@ -109,20 +82,10 @@ export default function ModelSelection({
         <div className="flex justify-between items-center">
           <div className="space-y-4 w-full">
             <ActiveFilters
-              filters={{
-                singleSelect: [
-                  {
-                    label: "Gender",
-                    selectedOption: selectedGender || "",
-                    key: "gender",
-                  },
-                ],
-                // Add other filter types here
-              }}
-              onRemove={(type, key) => {
-                if (type === "singleSelect" && key === "gender") {
-                  setSelectedGender("");
-                }
+              filters={modelFilters}
+              onRemove={(key) => {
+                modelFilters && delete modelFilters[key];
+                setChangeFilterValue(!changeFilterValue);
               }}
             />
           </div>

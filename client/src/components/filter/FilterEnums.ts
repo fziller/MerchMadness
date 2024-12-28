@@ -134,6 +134,7 @@ export type FilterConfig = {
     max: number;
     key: string;
     startValue: number;
-    onValueChange: (value: number) => void;
+    selectedValue: number | undefined;
+    onValueChange: (value: number | undefined) => void;
   }[];
 };

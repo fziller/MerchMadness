@@ -20,6 +20,7 @@ export type Filters = {
 
 type FilterPanelProps = {
   onApplyFilters: () => void;
+  onResetFilters: () => void;
   onClose: () => void;
   title: string;
   multiFilterConfig?: FilterConfig;
@@ -29,9 +30,11 @@ export default function FilterPanel({
   title,
   onClose,
   onApplyFilters,
+  onResetFilters,
   multiFilterConfig,
 }: FilterPanelProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const [update, setUpdate] = useState(false);
 
   const handleReset = () => {
     if (multiFilterConfig) {
@@ -45,25 +48,30 @@ export default function FilterPanel({
       // Reset multi-select filters
       if (multiFilterConfig.multiSelect) {
         multiFilterConfig.multiSelect.forEach((filter) => {
+          console.log("Handling reset for multi select filter", filter);
+
           filter.onSelectOption([]);
+          filter.selectedOptions = [];
         });
       }
 
       // Reset range sliders
       if (multiFilterConfig.rangeSlider) {
         multiFilterConfig.rangeSlider.forEach((filter) => {
-          filter.startValue = filter.min;
+          filter.onValueChange(undefined);
+          filter.selectedValue = undefined;
         });
       }
       // Reset Single select filter
       if (multiFilterConfig.singleSelect) {
         multiFilterConfig.singleSelect.forEach((filter) => {
-          console.log("Resetting for filter ", filter);
           filter.onSelectOption(undefined);
           filter.selectedOption = undefined;
         });
       }
     }
+    onResetFilters();
+    setUpdate(!update);
   };
 
   return (
@@ -89,7 +97,7 @@ export default function FilterPanel({
               <MultiSelectFilter {...multiSelectFilter} />
             ))}
             {/* Range-slider Filter */}
-            {multiFilterConfig?.rangeSlider?.map((sliderFilter, index) => (
+            {multiFilterConfig?.rangeSlider?.map((sliderFilter) => (
               <RangleSliderFilter {...sliderFilter} />
             ))}
             {/* Single-select Filter */}
@@ -100,7 +108,12 @@ export default function FilterPanel({
         </ScrollArea>
 
         <div className="flex justify-between mt-6 px-2">
-          <Button variant="outline" onClick={handleReset}>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              handleReset();
+            }}
+          >
             Reset
           </Button>
           <Button

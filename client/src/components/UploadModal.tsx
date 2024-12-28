@@ -162,6 +162,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 min={TagModelHeight.min}
                 max={TagModelHeight.max}
                 startValue={TagModelHeight.min}
+                selectedValue={formData.height}
                 onValueChange={(changedValue) =>
                   setFormData({
                     ...formData,
@@ -175,6 +176,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 min={TagModelWidth.min}
                 max={TagModelWidth.max}
                 startValue={TagModelWidth.min}
+                selectedValue={formData.width}
                 onValueChange={(changedValue) =>
                   setFormData({
                     ...formData,
@@ -198,7 +200,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 key={TagModelGenre.key}
                 label={TagModelGenre.label}
                 options={TagModelGenre.options}
-                selectedOptions={[]}
+                selectedOptions={formData.genre}
                 onSelectOption={(selectedOptions) => {
                   setFormData({
                     ...formData,
@@ -211,7 +213,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
             <>
               <MultiSelectFilter
                 key={TagShirtSize.key}
-                selectedOptions={[]}
+                selectedOptions={formData.size}
                 options={TagShirtSize.options}
                 onSelectOption={(selectedOptions) => {
                   setFormData({ ...formData, size: selectedOptions });
@@ -220,7 +222,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
               />
               <MultiSelectFilter
                 key={TagShirtColor.key}
-                selectedOptions={[]}
+                selectedOptions={formData.color}
                 options={TagShirtColor.options}
                 onSelectOption={(selectedOptions) => {
                   setFormData({ ...formData, color: selectedOptions });

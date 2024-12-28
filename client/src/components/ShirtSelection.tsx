@@ -2,27 +2,32 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { filterByType } from "@/lib/utils";
 import { deleteShirt } from "@/services/shirts";
 import type { Shirt } from "@db/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import ActiveFilters from "./ActiveFilters";
 import ImageViewModal from "./ImageViewModal";
 
 type ShirtSelectionProps = {
   onSelect: (shirt: Shirt | null) => void;
   selected: Shirt | null;
   onToggleFilters: () => void; // Changed to non-optional
+  shirtFilter: { [key: string]: string | number | string[] };
 };
 
 export default function ShirtSelection({
   onSelect,
   selected,
   onToggleFilters,
+  shirtFilter,
 }: ShirtSelectionProps) {
   const { data: shirts } = useQuery<Shirt[]>({
     queryKey: ["/api/shirts"],
   });
+  const [changeFilterValue, setChangeFilterValue] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: deleteShirt,
@@ -43,11 +48,20 @@ export default function ShirtSelection({
     },
   });
 
+  const [filteredShirts, setFilteredShirts] = useState<Shirt[]>(shirts || []);
+  useEffect(() => {
+    setFilteredShirts(
+      shirts
+        ? shirtFilter
+          ? shirts.filter((shirt) => filterByType(shirtFilter, shirt))
+          : shirts
+        : []
+    );
+  }, [shirts, shirtFilter, changeFilterValue]);
+
   const [selectedImage, setSelectedImage] = useState<Shirt | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  console.log({ selectedImage, shirts });
 
   return (
     <Card>
@@ -56,6 +70,15 @@ export default function ShirtSelection({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-end">
+          <div className="space-y-4 w-full">
+            <ActiveFilters
+              filters={shirtFilter}
+              onRemove={(key) => {
+                shirtFilter && delete shirtFilter[key];
+                setChangeFilterValue(!changeFilterValue);
+              }}
+            />
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -69,7 +92,7 @@ export default function ShirtSelection({
 
         <ScrollArea className="h-[500px]">
           <div className="grid grid-cols-2 gap-2">
-            {!shirts || shirts.length === 0
+            {!filteredShirts || filteredShirts.length === 0
               ? Array(6)
                   .fill(0)
                   .map((_, i) => (
@@ -83,7 +106,7 @@ export default function ShirtSelection({
                       </span>
                     </div>
                   ))
-              : shirts.map((shirt) => (
+              : filteredShirts.map((shirt) => (
                   <div
                     key={shirt.id}
                     className={`relative cursor-pointer rounded-lg overflow-hidden border-2 group ${

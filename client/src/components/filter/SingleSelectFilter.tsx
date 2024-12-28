@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 
 export type SingleSelectFilterProps = {
-  selectedOption: string;
+  selectedOption?: string;
   options: any[];
   onSelectOption: (option: any) => void;
   key: string;
@@ -9,7 +9,6 @@ export type SingleSelectFilterProps = {
 };
 
 export default function SingleSelectFilter(props: SingleSelectFilterProps) {
-  console.log("SingleSelectFilter", { props });
   return (
     <div className="space-y-2">
       <h3 className="font-medium">{props.label}</h3>

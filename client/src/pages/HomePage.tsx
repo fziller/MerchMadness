@@ -37,8 +37,10 @@ export default function HomePage() {
   const [modelGender, setModelGender] = useState<ModelGender | undefined>(
     undefined
   );
-  const [heightFilter, setHeightFilter] = useState<number>(100);
-  const [widthFilter, setWidthFilter] = useState<number>(50);
+  const [heightFilter, setHeightFilter] = useState<number | undefined>(
+    undefined
+  );
+  const [widthFilter, setWidthFilter] = useState<number | undefined>(undefined);
 
   // Needed for filtering Shirts
   const [shirtSize, setShirtSize] = useState<string[]>([]);
@@ -53,10 +55,15 @@ export default function HomePage() {
       event: modelEvent,
     });
   };
-  console.log("Homepage", { modelFilters, modelGender });
+
+  console.log("Homepage", { shirtSize, shirtColors });
 
   const handleShirtFilters = () => {
-    setShirtFilters({});
+    console.log("Resetting shirt filter", { shirtSize, shirtColors });
+    setShirtFilters({
+      size: shirtSize,
+      colors: shirtColors,
+    });
   };
 
   const toggleModelFilters = () => {
@@ -106,6 +113,8 @@ export default function HomePage() {
     }
   };
 
+  console.log("Homepage", { modelFilters, shirtFilters });
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b p-4 flex justify-between items-center">
@@ -125,7 +134,8 @@ export default function HomePage() {
             <div className="space-y-6">
               {showModelFilters && (
                 <FilterPanel
-                  onApplyFilters={handleModelFilters}
+                  onApplyFilters={() => handleModelFilters()}
+                  onResetFilters={() => setModelFilters(null)}
                   title="Model Filters"
                   onClose={() => setShowModelFilters(false)}
                   multiFilterConfig={{
@@ -157,14 +167,18 @@ export default function HomePage() {
                     rangeSlider: [
                       {
                         ...TagModelHeight,
-                        startValue: heightFilter,
+                        startValue: TagModelHeight.min,
+                        selectedValue: heightFilter,
                         onValueChange: (value) => setHeightFilter(value),
                       },
-
                       {
                         ...TagModelWidth,
-                        startValue: widthFilter,
-                        onValueChange: (value) => setWidthFilter(value),
+                        startValue: TagModelWidth.min,
+                        selectedValue: widthFilter,
+                        onValueChange: (value) => {
+                          setModelFilters(value);
+                          setWidthFilter(value);
+                        },
                       },
                     ],
                   }}
@@ -173,8 +187,9 @@ export default function HomePage() {
               {showShirtFilters && (
                 <FilterPanel
                   title="Shirt Filters"
-                  onApplyFilters={handleShirtFilters}
+                  onApplyFilters={() => handleShirtFilters()}
                   onClose={() => setShowShirtFilters(false)}
+                  onResetFilters={() => setShirtFilters({})}
                   multiFilterConfig={{
                     multiSelect: [
                       {
@@ -211,6 +226,7 @@ export default function HomePage() {
               onSelect={handleShirtSelection}
               selected={selectedShirt}
               onToggleFilters={toggleShirtFilters}
+              shirtFilter={shirtFilters}
             />
             <ResultsArea model={selectedModel} shirt={selectedShirt} />
           </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Slider } from "../ui/slider";
 
 type RangeSliderProps = {
@@ -7,11 +7,24 @@ type RangeSliderProps = {
   max: number;
   onValueChange: (value: number) => void;
   startValue: number;
+  selectedValue?: number;
   key: string;
 };
 
 export function RangleSliderFilter(props: RangeSliderProps) {
-  const [actualValue, setActualValue] = useState(props.startValue);
+  const [actualValue, setActualValue] = useState(
+    props.selectedValue ?? props.startValue
+  );
+
+  console.log("RangleSlider", { actualValue, selected: props.selectedValue });
+
+  useEffect(() => {
+    if (props.selectedValue) {
+      setActualValue(props.selectedValue);
+    } else {
+      setActualValue(props.startValue);
+    }
+  }, [props.selectedValue]);
 
   return (
     <div key={props.key} className="space-y-4">
@@ -25,10 +38,11 @@ export function RangleSliderFilter(props: RangeSliderProps) {
           props.onValueChange(value[0]);
           setActualValue(value[0]);
         }}
+        value={[props.selectedValue ?? props.startValue]}
         className="w-full"
       />
       <div className="text-center text-sm text-muted-foreground">
-        {actualValue}
+        {props.selectedValue ?? actualValue}
       </div>
       <div className="flex justify-between text-sm text-muted-foreground">
         <span>{props.min}</span>
