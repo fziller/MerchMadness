@@ -16,8 +16,6 @@ export function RangleSliderFilter(props: RangeSliderProps) {
     props.selectedValue ?? props.startValue
   );
 
-  console.log("RangleSlider", { actualValue, selected: props.selectedValue });
-
   useEffect(() => {
     if (props.selectedValue) {
       setActualValue(props.selectedValue);

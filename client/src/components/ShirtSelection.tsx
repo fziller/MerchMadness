@@ -10,19 +10,20 @@ import { SlidersHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
 import ImageViewModal from "./ImageViewModal";
+import { MetaData } from "./filter/FilterEnums";
 
 type ShirtSelectionProps = {
-  onSelect: (shirt: Shirt | null) => void;
-  selected: Shirt | null;
   onToggleFilters: () => void; // Changed to non-optional
-  shirtFilter: { [key: string]: string | number | string[] };
+  shirtFilter: MetaData;
+  onSelectedShirtsChange: (selectedShirts: Shirt[]) => void;
+  onRemoveFilterFromSelection: (metadata: MetaData) => void;
 };
 
 export default function ShirtSelection({
-  onSelect,
-  selected,
   onToggleFilters,
   shirtFilter,
+  onSelectedShirtsChange,
+  onRemoveFilterFromSelection,
 }: ShirtSelectionProps) {
   const { data: shirts } = useQuery<Shirt[]>({
     queryKey: ["/api/shirts"],
@@ -50,13 +51,13 @@ export default function ShirtSelection({
 
   const [filteredShirts, setFilteredShirts] = useState<Shirt[]>(shirts || []);
   useEffect(() => {
-    setFilteredShirts(
-      shirts
-        ? shirtFilter
-          ? shirts.filter((shirt) => filterByType(shirtFilter, shirt))
-          : shirts
-        : []
-    );
+    const shirtsAfterChange = shirts
+      ? shirtFilter
+        ? shirts.filter((shirt) => filterByType(shirtFilter, shirt))
+        : shirts
+      : [];
+    setFilteredShirts(shirtsAfterChange);
+    onSelectedShirtsChange(shirtsAfterChange);
   }, [shirts, shirtFilter, changeFilterValue]);
 
   const [selectedImage, setSelectedImage] = useState<Shirt | null>(null);
@@ -76,6 +77,7 @@ export default function ShirtSelection({
               onRemove={(key) => {
                 shirtFilter && delete shirtFilter[key];
                 setChangeFilterValue(!changeFilterValue);
+                onRemoveFilterFromSelection(shirtFilter);
               }}
             />
           </div>
@@ -99,7 +101,6 @@ export default function ShirtSelection({
                     <div
                       key={i}
                       className="cursor-pointer rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/50 aspect-square flex items-center justify-center bg-muted/50 relative group"
-                      onClick={() => onSelect(null)}
                     >
                       <span className="text-sm text-muted-foreground">
                         Shirt {i + 1}
@@ -109,12 +110,9 @@ export default function ShirtSelection({
               : filteredShirts.map((shirt) => (
                   <div
                     key={shirt.id}
-                    className={`relative cursor-pointer rounded-lg overflow-hidden border-2 group ${
-                      selected?.id === shirt.id
-                        ? "border-primary"
-                        : "border-transparent"
-                    }`}
-                    onClick={() => onSelect(shirt)}
+                    className={
+                      "relative cursor-pointer rounded-lg overflow-hidden border-2 group border-transparent"
+                    }
                   >
                     <div className="relative">
                       <img
@@ -159,6 +157,7 @@ export default function ShirtSelection({
                     : `/uploads/${selectedImage.imageUrl}`
                 }
                 title={selectedImage.name}
+                metadata={selectedImage.metadata as MetaData}
                 onClose={() => setSelectedImage(null)}
                 onDelete={() => {
                   if (

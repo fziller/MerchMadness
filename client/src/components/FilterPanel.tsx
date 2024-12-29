@@ -5,18 +5,12 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 import { useState } from "react";
 import { FilterConfig } from "./filter/FilterEnums";
 import MultiSelectFilter from "./filter/MultiSelectFilter";
 import { RangleSliderFilter } from "./filter/RangeSliderFilter";
 import SingleSelectFilter from "./filter/SingleSelectFilter";
-
-export type Filters = {
-  inStock?: boolean;
-  sizes?: string[];
-  priceRange?: [number, number];
-};
 
 type FilterPanelProps = {
   onApplyFilters: () => void;
@@ -33,7 +27,6 @@ export default function FilterPanel({
   onResetFilters,
   multiFilterConfig,
 }: FilterPanelProps) {
-  const [isOpen, setIsOpen] = useState(true);
   const [update, setUpdate] = useState(false);
 
   const handleReset = () => {
@@ -48,8 +41,6 @@ export default function FilterPanel({
       // Reset multi-select filters
       if (multiFilterConfig.multiSelect) {
         multiFilterConfig.multiSelect.forEach((filter) => {
-          console.log("Handling reset for multi select filter", filter);
-
           filter.onSelectOption([]);
           filter.selectedOptions = [];
         });
@@ -75,18 +66,10 @@ export default function FilterPanel({
   };
 
   return (
-    <Collapsible
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      className="w-full border rounded-lg p-2"
-    >
+    <Collapsible open={true} className="w-full border rounded-lg p-2">
       <CollapsibleTrigger className="flex items-center justify-between w-full p-2">
         <span className="font-semibold">{title}</span>
-        {isOpen ? (
-          <ChevronDown className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
+        <X className="h-4 w-4" onClick={() => onClose()} />
       </CollapsibleTrigger>
 
       <CollapsibleContent className="mt-4">

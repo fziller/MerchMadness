@@ -1,18 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { CombinedImage, Model, Shirt } from "@db/schema";
+import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
-import type { Model, Shirt, CombinedImage } from "@db/schema";
 
 type ResultsAreaProps = {
-  model: Model | null;
-  shirt: Shirt | null;
+  models: Model[] | null;
+  shirts: Shirt[] | null;
 };
 
-export default function ResultsArea({ model, shirt }: ResultsAreaProps) {
+export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
   const { data: combinedImages } = useQuery<CombinedImage[]>({
     queryKey: ["/api/combined"],
-    enabled: !!model && !!shirt,
+    enabled: !!models && !!shirts,
   });
 
   const handleDownload = (imageUrl: string) => {
@@ -37,16 +37,14 @@ export default function ResultsArea({ model, shirt }: ResultsAreaProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Results</CardTitle>
         <div className="flex gap-2">
-          <Button onClick={handleCombine}>
-            Combine
-          </Button>
+          <Button onClick={handleCombine}>Combine</Button>
           <Button variant="outline" onClick={handleDownloadAll}>
             Download All
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        {!model || !shirt ? (
+        {!models || models.length === 0 || !shirts || shirts.length === 0 ? (
           <div className="text-center text-muted-foreground">
             Select both a model and a shirt to see results
           </div>

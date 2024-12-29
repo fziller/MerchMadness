@@ -1,3 +1,4 @@
+import { MetaData } from "@/components/filter/FilterEnums";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -5,10 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function filterByType(
-  filters: { [key: string]: string | number | string[] },
-  entity: any
-) {
+export function filterByType(filters: MetaData, entity: any) {
   {
     let filtered = false;
     for (const key in filters) {

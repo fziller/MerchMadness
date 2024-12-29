@@ -1,4 +1,5 @@
 import {
+  MetaData,
   ModelEvent,
   ModelGender,
   ModelGenre,
@@ -21,15 +22,15 @@ import { useState } from "react";
 export default function HomePage() {
   const { user, logout } = useUser();
   const { toast } = useToast();
-  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
-  const [selectedShirt, setSelectedShirt] = useState<Shirt | null>(null);
+  const [selectedModels, setSelectedModels] = useState<Model[]>([]);
+  const [selectedShirts, setSelectedShirts] = useState<Shirt[] | null>(null);
   const [showModelFilters, setShowModelFilters] = useState(false);
   const [showShirtFilters, setShowShirtFilters] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState<
     "model" | "shirt" | null
   >(null);
-  const [modelFilters, setModelFilters] = useState<any>(null);
-  const [shirtFilters, setShirtFilters] = useState<any>(null);
+  const [modelFilters, setModelFilters] = useState<MetaData>({});
+  const [shirtFilters, setShirtFilters] = useState<MetaData>({});
 
   // Needed for filtering models
   const [modelGenre, setModelGenre] = useState<ModelGenre[]>([]);
@@ -37,10 +38,8 @@ export default function HomePage() {
   const [modelGender, setModelGender] = useState<ModelGender | undefined>(
     undefined
   );
-  const [heightFilter, setHeightFilter] = useState<number | undefined>(
-    undefined
-  );
-  const [widthFilter, setWidthFilter] = useState<number | undefined>(undefined);
+  const [modelHeight, setModelHeight] = useState<number | undefined>(undefined);
+  const [modelWidth, setModelWidth] = useState<number | undefined>(undefined);
 
   // Needed for filtering Shirts
   const [shirtSize, setShirtSize] = useState<string[]>([]);
@@ -49,17 +48,14 @@ export default function HomePage() {
   const handleModelFilters = () => {
     setModelFilters({
       gender: modelGender,
-      height: heightFilter,
-      width: widthFilter,
+      height: modelHeight,
+      width: modelWidth,
       genre: modelGenre,
       event: modelEvent,
     });
   };
 
-  console.log("Homepage", { shirtSize, shirtColors });
-
   const handleShirtFilters = () => {
-    console.log("Resetting shirt filter", { shirtSize, shirtColors });
     setShirtFilters({
       size: shirtSize,
       colors: shirtColors,
@@ -74,24 +70,6 @@ export default function HomePage() {
   const toggleShirtFilters = () => {
     setShowShirtFilters((prev) => !prev);
     setShowModelFilters(false); // Close other filter panel
-  };
-
-  const handleModelSelection = (model: Model | null) => {
-    setSelectedModel(model);
-    if (model) {
-      alert(
-        `Selected model with filters: ${JSON.stringify(modelFilters || {})}`
-      );
-    }
-  };
-
-  const handleShirtSelection = (shirt: Shirt | null) => {
-    setSelectedShirt(shirt);
-    if (shirt) {
-      alert(
-        `Selected shirt with filters: ${JSON.stringify(shirtFilters || {})}`
-      );
-    }
   };
 
   const handleLogout = async () => {
@@ -113,8 +91,6 @@ export default function HomePage() {
     }
   };
 
-  console.log("Homepage", { modelFilters, shirtFilters });
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b p-4 flex justify-between items-center">
@@ -135,7 +111,7 @@ export default function HomePage() {
               {showModelFilters && (
                 <FilterPanel
                   onApplyFilters={() => handleModelFilters()}
-                  onResetFilters={() => setModelFilters(null)}
+                  onResetFilters={() => setModelFilters({})}
                   title="Model Filters"
                   onClose={() => setShowModelFilters(false)}
                   multiFilterConfig={{
@@ -168,16 +144,15 @@ export default function HomePage() {
                       {
                         ...TagModelHeight,
                         startValue: TagModelHeight.min,
-                        selectedValue: heightFilter,
-                        onValueChange: (value) => setHeightFilter(value),
+                        selectedValue: modelHeight,
+                        onValueChange: (value) => setModelHeight(value),
                       },
                       {
                         ...TagModelWidth,
                         startValue: TagModelWidth.min,
-                        selectedValue: widthFilter,
+                        selectedValue: modelWidth,
                         onValueChange: (value) => {
-                          setModelFilters(value);
-                          setWidthFilter(value);
+                          setModelWidth(value);
                         },
                       },
                     ],
@@ -217,18 +192,32 @@ export default function HomePage() {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6 max-w-4xl mx-auto">
             <ModelSelection
-              onSelect={handleModelSelection}
-              selected={selectedModel}
               onToggleFilters={toggleModelFilters}
               modelFilters={modelFilters}
+              onSelectedModelsChange={(models) => setSelectedModels(models)}
+              onRemoveFilterFromSelection={(metadata) => {
+                // We possibly need to revert any filter data, if it was removed via badge in the selection view.
+                setModelGender(metadata.gender as ModelGender);
+                setModelGenre(metadata.genre as ModelGenre[]);
+                setModelEvent(metadata.event as ModelEvent[]);
+                setModelHeight(metadata.height as number);
+                setModelWidth(metadata.width as number);
+                setModelFilters(metadata);
+              }}
             />
             <ShirtSelection
-              onSelect={handleShirtSelection}
-              selected={selectedShirt}
               onToggleFilters={toggleShirtFilters}
               shirtFilter={shirtFilters}
+              onSelectedShirtsChange={(shirts) => setSelectedShirts(shirts)}
+              onRemoveFilterFromSelection={(metadata) => {
+                // We possibly need to revert any filter data, if it was removed via badge in the selection view.
+                setShirtColors(metadata.colors as string[]);
+                setShirtSize(metadata.size as string[]);
+
+                setShirtFilters(metadata);
+              }}
             />
-            <ResultsArea model={selectedModel} shirt={selectedShirt} />
+            <ResultsArea models={selectedModels} shirts={selectedShirts} />
           </div>
         </main>
 

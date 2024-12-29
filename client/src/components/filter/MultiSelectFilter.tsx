@@ -12,18 +12,20 @@ type MultiSelectProps = {
 export default function MultiSelectFilter(props: MultiSelectProps) {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   useEffect(() => {
-    if (props.selectedOptions) {
-      setSelectedOptions(props.selectedOptions);
-    }
+    setSelectedOptions(props.selectedOptions);
   }, [props.selectedOptions]);
+
   return (
     <div className="space-y-2">
       <h3 className="font-medium">{props.label}</h3>
       <div className="grid grid-cols-2 gap-2">
         {props.options
           ? props.options.map((option) => {
-              let isChecked =
-                selectedOptions && selectedOptions.includes(option);
+              const isChecked =
+                selectedOptions !== undefined &&
+                Array.isArray(selectedOptions) &&
+                selectedOptions.includes(option);
+
               return (
                 <div key={option} className="flex items-center space-x-2">
                   <Checkbox
@@ -32,7 +34,10 @@ export default function MultiSelectFilter(props: MultiSelectProps) {
                     onCheckedChange={() => {
                       const newSelectedOptions = isChecked
                         ? selectedOptions.filter((s) => s !== option)
-                        : [...selectedOptions, option];
+                        : // Check if we already have selectedOptions and add another one. If not, create a new new selected options array
+                        selectedOptions
+                        ? [...selectedOptions, option]
+                        : [option];
                       props.onSelectOption(newSelectedOptions);
                       setSelectedOptions(newSelectedOptions);
                     }}

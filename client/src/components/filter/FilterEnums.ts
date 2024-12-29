@@ -138,3 +138,7 @@ export type FilterConfig = {
     onValueChange: (value: number | undefined) => void;
   }[];
 };
+
+export interface MetaData {
+  [key: string]: string | number | string[] | undefined;
+}

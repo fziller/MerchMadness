@@ -9,22 +9,22 @@ import { SlidersHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
 import ImageViewModal from "./ImageViewModal";
+import { MetaData } from "./filter/FilterEnums";
 
 type ModelSelectionProps = {
-  onSelect: (model: Model | null) => void;
-  selected: Model | null;
   onToggleFilters: () => void;
-  modelFilters?: { [key: string]: string | number | string[] };
+  modelFilters?: MetaData;
+  onSelectedModelsChange: (selectedModels: Model[]) => void;
+  onRemoveFilterFromSelection: (metadata: MetaData) => void;
 };
 
 export default function ModelSelection({
-  onSelect,
-  selected,
   onToggleFilters,
   modelFilters,
+  onSelectedModelsChange,
+  onRemoveFilterFromSelection,
 }: ModelSelectionProps) {
   const [selectedImage, setSelectedImage] = useState<Model | null>(null);
-  const [selectedModels, setSelectedModels] = useState<Model[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [changeFilterValue, setChangeFilterValue] = useState(false);
@@ -34,17 +34,15 @@ export default function ModelSelection({
   });
   const [filteredModels, setFilteredModels] = useState<Model[]>(models || []);
 
-  // We need to filter the models based on the selected filter
-  console.log({ models, filteredModels, modelFilters });
-
+  // Effect to show the updated list of models in the modelselection as well as changing the selected models.
   useEffect(() => {
-    setFilteredModels(
-      models
-        ? !modelFilters
-          ? models
-          : models.filter((model) => filterByType(modelFilters, model))
-        : []
-    );
+    const modelsAfterChange = models
+      ? !modelFilters
+        ? models
+        : models.filter((model) => filterByType(modelFilters, model))
+      : [];
+    setFilteredModels(modelsAfterChange);
+    onSelectedModelsChange(modelsAfterChange);
   }, [models, modelFilters, changeFilterValue]);
 
   const deleteMutation = useMutation({
@@ -74,8 +72,6 @@ export default function ModelSelection({
     },
   });
 
-  console.log({ selectedImage });
-
   return (
     <Card>
       <CardHeader>
@@ -89,6 +85,7 @@ export default function ModelSelection({
               onRemove={(key) => {
                 modelFilters && delete modelFilters[key];
                 setChangeFilterValue(!changeFilterValue);
+                onRemoveFilterFromSelection(modelFilters || {});
               }}
             />
           </div>
@@ -112,7 +109,7 @@ export default function ModelSelection({
                   <ImageViewModal
                     imageUrl={selectedImage.imageUrl}
                     title={selectedImage.name}
-                    metadata={selectedImage.metadata}
+                    metadata={selectedImage.metadata as MetaData}
                     onClose={() => setSelectedImage(null)}
                     onDelete={() => {
                       deleteMutation.mutate(selectedImage.id);
@@ -124,11 +121,9 @@ export default function ModelSelection({
               return (
                 <div
                   key={model.id}
-                  className={`relative cursor-pointer rounded-lg overflow-hidden border-2 group ${
-                    selected?.id === model.id
-                      ? "border-primary"
-                      : "border-transparent"
-                  }`}
+                  className={
+                    "relative cursor-pointer rounded-lg overflow-hidden border-2 group border-transparent"
+                  }
                 >
                   <div
                     className="relative"
@@ -206,7 +201,7 @@ export default function ModelSelection({
                 : `/uploads/${selectedImage.imageUrl}`
             }
             title={selectedImage.name}
-            metadata={selectedImage.metadata}
+            metadata={selectedImage.metadata as MetaData}
             onClose={() => setSelectedImage(null)}
             onDelete={() => {
               if (

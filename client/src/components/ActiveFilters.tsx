@@ -1,8 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { MetaData } from "./filter/FilterEnums";
 
 type ActiveFiltersProps = {
-  filters: { [key: string]: string | number | string[] } | undefined;
+  filters: MetaData | undefined;
   onRemove?: (key: string) => void;
 };
 
@@ -10,7 +11,6 @@ export default function ActiveFilters({
   filters,
   onRemove,
 }: ActiveFiltersProps) {
-  console.log("Rendering ActiveFilters", filters);
   return (
     <div className="flex flex-wrap gap-2">
       {filters &&

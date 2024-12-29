@@ -7,11 +7,12 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import ActiveFilters from "./ActiveFilters";
+import { MetaData } from "./filter/FilterEnums";
 
 type ImageViewModalProps = {
   imageUrl: string;
   title: string;
-  metadata: { [key: string]: string | number | string[] };
+  metadata: MetaData;
   onClose: () => void;
   onDelete: () => void;
 };
@@ -28,7 +29,6 @@ export default function ImageViewModal({
       onDelete();
     }
   };
-  console.log("Rendering ImageViewModal", { imageUrl, title, metadata });
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
