@@ -3,13 +3,14 @@ import { X } from "lucide-react";
 
 type ActiveFiltersProps = {
   filters: { [key: string]: string | number | string[] } | undefined;
-  onRemove: (key: string) => void;
+  onRemove?: (key: string) => void;
 };
 
 export default function ActiveFilters({
   filters,
   onRemove,
 }: ActiveFiltersProps) {
+  console.log("Rendering ActiveFilters", filters);
   return (
     <div className="flex flex-wrap gap-2">
       {filters &&
@@ -24,10 +25,12 @@ export default function ActiveFilters({
                 {`${key.charAt(0).toUpperCase() + key.slice(1)}: ${
                   filters[key]
                 }`}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => onRemove(key)}
-                />
+                {onRemove && (
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => onRemove(key)}
+                  />
+                )}
               </Badge>
             );
           }
@@ -40,10 +43,12 @@ export default function ActiveFilters({
               >
                 {`${key.charAt(0).toUpperCase() + key.slice(1)}: 
                 >${filters[key]}`}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => onRemove(key)}
-                />
+                {onRemove && (
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => onRemove(key)}
+                  />
+                )}
               </Badge>
             );
           }
@@ -56,10 +61,12 @@ export default function ActiveFilters({
               >
                 {`${key.charAt(0).toUpperCase() + key.slice(1)}: 
                 ${filters[key]}`}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => onRemove(key)}
-                />
+                {onRemove && (
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => onRemove(key)}
+                  />
+                )}
               </Badge>
             );
           }

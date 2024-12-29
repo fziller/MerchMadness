@@ -1,15 +1,17 @@
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import ActiveFilters from "./ActiveFilters";
 
 type ImageViewModalProps = {
   imageUrl: string;
   title: string;
+  metadata: { [key: string]: string | number | string[] };
   onClose: () => void;
   onDelete: () => void;
 };
@@ -17,6 +19,7 @@ type ImageViewModalProps = {
 export default function ImageViewModal({
   imageUrl,
   title,
+  metadata,
   onClose,
   onDelete,
 }: ImageViewModalProps) {
@@ -25,6 +28,7 @@ export default function ImageViewModal({
       onDelete();
     }
   };
+  console.log("Rendering ImageViewModal", { imageUrl, title, metadata });
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
@@ -43,11 +47,18 @@ export default function ImageViewModal({
           </DialogTitle>
         </DialogHeader>
         <div className="relative">
+          <div className="mb-4">
+            <ActiveFilters filters={metadata} />
+          </div>
           <img
-            src={imageUrl.startsWith('/uploads') ? imageUrl : `/uploads/${imageUrl}`}
+            src={
+              imageUrl.startsWith("/uploads")
+                ? imageUrl
+                : `/uploads/${imageUrl}`
+            }
             alt={title}
             className="w-full h-auto rounded-lg"
-            style={{ maxHeight: '80vh', objectFit: 'contain' }}
+            style={{ maxHeight: "80vh", objectFit: "contain" }}
           />
         </div>
       </DialogContent>

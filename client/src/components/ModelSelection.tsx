@@ -24,6 +24,7 @@ export default function ModelSelection({
   modelFilters,
 }: ModelSelectionProps) {
   const [selectedImage, setSelectedImage] = useState<Model | null>(null);
+  const [selectedModels, setSelectedModels] = useState<Model[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [changeFilterValue, setChangeFilterValue] = useState(false);
@@ -73,6 +74,8 @@ export default function ModelSelection({
     },
   });
 
+  console.log({ selectedImage });
+
   return (
     <Card>
       <CardHeader>
@@ -109,6 +112,7 @@ export default function ModelSelection({
                   <ImageViewModal
                     imageUrl={selectedImage.imageUrl}
                     title={selectedImage.name}
+                    metadata={selectedImage.metadata}
                     onClose={() => setSelectedImage(null)}
                     onDelete={() => {
                       deleteMutation.mutate(selectedImage.id);
@@ -152,7 +156,7 @@ export default function ModelSelection({
                     <Button
                       variant="secondary"
                       size="icon"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (
@@ -166,6 +170,28 @@ export default function ModelSelection({
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                    {/* TODO will be needed if we want to select a single from the filtered models.
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="absolute top-16 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this model?"
+                          )
+                        ) {
+                          deleteMutation.mutate(model.id);
+                        }
+                      }}
+                    >
+                      <Checkbox
+                        id={`model-${model.id}-2`}
+                        checked={false}
+                        onCheckedChange={() => {}}
+                      />
+                    </Button> */}
                   </div>
                 </div>
               );
@@ -180,6 +206,7 @@ export default function ModelSelection({
                 : `/uploads/${selectedImage.imageUrl}`
             }
             title={selectedImage.name}
+            metadata={selectedImage.metadata}
             onClose={() => setSelectedImage(null)}
             onDelete={() => {
               if (
