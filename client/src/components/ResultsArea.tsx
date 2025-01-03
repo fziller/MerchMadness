@@ -58,6 +58,18 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
         });
     }
 
+    for (const shirt in shirts) {
+      await fetch(shirts[shirt].imageUrl)
+        .then(async (response) => {
+          const ab = response.arrayBuffer();
+          // TODO File extension needs to be changed (configurable?)
+          imagesFolder.file(`${shirts[shirt].id}.jpg`, ab);
+        })
+        .catch((error) => {
+          console.log("Fetch images", error);
+        });
+    }
+
     const zipContent = await zip.generateAsync({ type: "blob" });
     const url = window.URL.createObjectURL(zipContent);
     const link = document.createElement("a");

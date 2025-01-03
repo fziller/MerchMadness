@@ -190,7 +190,7 @@ export default function HomePage() {
         )}
 
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6 max-w-4xl mx-auto">
+          <div className="space-y-6 max-w-4xxl mx-auto">
             <ModelSelection
               onToggleFilters={toggleModelFilters}
               modelFilters={modelFilters}

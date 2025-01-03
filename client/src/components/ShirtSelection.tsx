@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
 import ImageViewModal from "./ImageViewModal";
 import { MetaData } from "./filter/FilterEnums";
+import { Checkbox } from "./ui/checkbox";
 
 type ShirtSelectionProps = {
   onToggleFilters: () => void; // Changed to non-optional
@@ -29,6 +30,7 @@ export default function ShirtSelection({
     queryKey: ["/api/shirts"],
   });
   const [changeFilterValue, setChangeFilterValue] = useState(false);
+  const [selectedShirts, setSelectedShirts] = useState<string[]>([]); // Stores the imageUrls of the selected models
 
   const deleteMutation = useMutation({
     mutationFn: deleteShirt,
@@ -57,8 +59,18 @@ export default function ShirtSelection({
         : shirts
       : [];
     setFilteredShirts(shirtsAfterChange);
-    onSelectedShirtsChange(shirtsAfterChange);
-  }, [shirts, shirtFilter, changeFilterValue]);
+    // If we have models selected, we only want to use the selected ones.
+    if (selectedShirts.length > 0) {
+      onSelectedShirtsChange(
+        shirtsAfterChange.filter((shirt) =>
+          selectedShirts.includes(shirt.imageUrl)
+        )
+      );
+      // If no model is selected, we assume to take every model we see.
+    } else {
+      onSelectedShirtsChange(shirtsAfterChange);
+    }
+  }, [shirts, shirtFilter, changeFilterValue, selectedShirts]);
 
   const [selectedImage, setSelectedImage] = useState<Shirt | null>(null);
   const { toast } = useToast();
@@ -93,7 +105,7 @@ export default function ShirtSelection({
         </div>
 
         <ScrollArea className="h-[500px]">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
             {!filteredShirts || filteredShirts.length === 0
               ? Array(6)
                   .fill(0)
@@ -110,11 +122,52 @@ export default function ShirtSelection({
               : filteredShirts.map((shirt) => (
                   <div
                     key={shirt.id}
-                    className={
-                      "relative cursor-pointer rounded-lg overflow-hidden border-2 group border-transparent"
-                    }
+                    className={`relative cursor-pointer rounded-lg overflow-hidden border-2 p-2 group ${
+                      selectedShirts.includes(shirt.imageUrl)
+                        ? "border-primary"
+                        : "border-transparent"
+                    }`}
                   >
                     <div className="relative">
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute top-1 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (selectedShirts.includes(shirt.imageUrl)) {
+                            setSelectedShirts(
+                              selectedShirts.filter(
+                                (id) => id !== shirt.imageUrl
+                              )
+                            );
+                          } else {
+                            setSelectedShirts([
+                              ...selectedShirts,
+                              shirt.imageUrl,
+                            ]);
+                          }
+                        }}
+                      >
+                        <Checkbox
+                          id={`shirt-${shirt.id}-2`}
+                          checked={selectedShirts.includes(shirt.imageUrl)}
+                          onCheckedChange={() => {
+                            if (selectedShirts.includes(shirt.imageUrl)) {
+                              setSelectedShirts(
+                                selectedShirts.filter(
+                                  (id) => id !== shirt.imageUrl
+                                )
+                              );
+                            } else {
+                              setSelectedShirts([
+                                ...selectedShirts,
+                                shirt.imageUrl,
+                              ]);
+                            }
+                          }}
+                        />
+                      </Button>
                       <img
                         src={
                           shirt.imageUrl.startsWith("/uploads")

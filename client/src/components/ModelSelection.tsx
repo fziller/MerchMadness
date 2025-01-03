@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { filterByType } from "@/lib/utils";
@@ -33,6 +34,7 @@ export default function ModelSelection({
     queryKey: ["/api/models"],
   });
   const [filteredModels, setFilteredModels] = useState<Model[]>(models || []);
+  const [selectedModels, setSelectedModels] = useState<string[]>([]); // Stores the ids of the selected models
 
   // Effect to show the updated list of models in the modelselection as well as changing the selected models.
   useEffect(() => {
@@ -42,8 +44,18 @@ export default function ModelSelection({
         : models.filter((model) => filterByType(modelFilters, model))
       : [];
     setFilteredModels(modelsAfterChange);
-    onSelectedModelsChange(modelsAfterChange);
-  }, [models, modelFilters, changeFilterValue]);
+    // If we have models selected, we only want to use the selected ones.
+    if (selectedModels.length > 0) {
+      onSelectedModelsChange(
+        modelsAfterChange.filter((model) =>
+          selectedModels.includes(model.imageUrl)
+        )
+      );
+      // If no model is selected, we assume to take every model we see.
+    } else {
+      onSelectedModelsChange(modelsAfterChange);
+    }
+  }, [models, modelFilters, changeFilterValue, selectedModels]);
 
   const deleteMutation = useMutation({
     mutationFn: async (modelId: number) => {
@@ -102,7 +114,8 @@ export default function ModelSelection({
         </div>
 
         <ScrollArea className="h-[400px]">
-          <div className="grid grid-cols-2 gap-2">
+          {/* 18rem = 288px (https://tailwindcss.com/docs/width) */}
+          <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
             {filteredModels?.map((model) => {
               {
                 selectedImage && (
@@ -121,9 +134,11 @@ export default function ModelSelection({
               return (
                 <div
                   key={model.id}
-                  className={
-                    "relative cursor-pointer rounded-lg overflow-hidden border-2 group border-transparent"
-                  }
+                  className={`relative cursor-pointer rounded-lg overflow-hidden border-2 group p-2 ${
+                    selectedModels.includes(model.imageUrl)
+                      ? "border-primary"
+                      : "border-transparent"
+                  }`}
                 >
                   <div
                     className="relative"
@@ -132,6 +147,43 @@ export default function ModelSelection({
                       setSelectedImage(model);
                     }}
                   >
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="absolute top-1 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (selectedModels.includes(model.imageUrl)) {
+                          setSelectedModels(
+                            selectedModels.filter((id) => id !== model.imageUrl)
+                          );
+                        } else {
+                          setSelectedModels([
+                            ...selectedModels,
+                            model.imageUrl,
+                          ]);
+                        }
+                      }}
+                    >
+                      <Checkbox
+                        id={`model-${model.id}-2`}
+                        checked={selectedModels.includes(model.imageUrl)}
+                        onCheckedChange={() => {
+                          if (selectedModels.includes(model.imageUrl)) {
+                            setSelectedModels(
+                              selectedModels.filter(
+                                (id) => id !== model.imageUrl
+                              )
+                            );
+                          } else {
+                            setSelectedModels([
+                              ...selectedModels,
+                              model.imageUrl,
+                            ]);
+                          }
+                        }}
+                      />
+                    </Button>
                     {model.imageUrl ? (
                       <img
                         src={
@@ -165,28 +217,6 @@ export default function ModelSelection({
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                    {/* TODO will be needed if we want to select a single from the filtered models.
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="absolute top-16 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this model?"
-                          )
-                        ) {
-                          deleteMutation.mutate(model.id);
-                        }
-                      }}
-                    >
-                      <Checkbox
-                        id={`model-${model.id}-2`}
-                        checked={false}
-                        onCheckedChange={() => {}}
-                      />
-                    </Button> */}
                   </div>
                 </div>
               );
