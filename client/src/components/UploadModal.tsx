@@ -87,8 +87,6 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
         }
       });
 
-      console.log("The form we are going to upload", form);
-
       const response = await fetch(`/api/${type}s`, {
         method: "POST",
         body: form,
