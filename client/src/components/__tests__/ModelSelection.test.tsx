@@ -1,9 +1,9 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ModelSelection from "@/components/ModelSelection";
 import type { Model } from "@db/schema";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 
 // Mock the hooks and components we don't want to test
 vi.mock("@/components/ui/toast", () => ({
@@ -83,7 +83,7 @@ describe("ModelSelection", () => {
     expect(screen.getByText("Select Model")).toBeInTheDocument();
   });
 
-  it("displays models from the API", async () => {
+  it.only("displays models from the API", async () => {
     renderComponent();
     await waitFor(() => {
       expect(screen.getByAltText("Test Model 1")).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe("ModelSelection", () => {
   it("calls onToggleFilters when filter button is clicked", async () => {
     const onToggleFilters = vi.fn();
     renderComponent({ onToggleFilters });
-    
+
     const filterButton = screen.getByText("Filters");
     fireEvent.click(filterButton);
     expect(onToggleFilters).toHaveBeenCalled();
@@ -111,30 +111,40 @@ describe("ModelSelection", () => {
 
   it("handles model deletion", async () => {
     const user = userEvent.setup();
-    global.fetch = vi.fn()
-      .mockImplementationOnce(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(mockModels),
-      }))
-      .mockImplementationOnce(() => Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ message: "Model deleted successfully" }),
-      }));
+    global.fetch = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockModels),
+        })
+      )
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({ message: "Model deleted successfully" }),
+        })
+      );
 
     global.confirm = vi.fn(() => true);
-    
+
     renderComponent();
-    
+
     await waitFor(() => {
       expect(screen.getByAltText("Test Model 1")).toBeInTheDocument();
     });
 
     const deleteButtons = await screen.findAllByRole("button");
-    const deleteButton = deleteButtons.find(button => button.querySelector("svg"));
-    
+    const deleteButton = deleteButtons.find((button) =>
+      button.querySelector("svg")
+    );
+
     await user.click(deleteButton!);
-    
-    expect(global.confirm).toHaveBeenCalledWith("Are you sure you want to delete this model?");
+
+    expect(global.confirm).toHaveBeenCalledWith(
+      "Are you sure you want to delete this model?"
+    );
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 

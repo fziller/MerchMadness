@@ -82,8 +82,24 @@ export default function ShirtSelection({
         <CardTitle>Select Shirt</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex justify-end">
-          <div className="space-y-4 w-full">
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() =>
+              selectedShirts.length === filteredShirts.length
+                ? setSelectedShirts([])
+                : setSelectedShirts(shirts?.map((shirt) => shirt.imageUrl))
+            } // Fixed onClick handler
+          >
+            <Checkbox
+              className="h-4 w-4"
+              checked={selectedShirts.length === filteredShirts.length}
+            />
+            Select All
+          </Button>
+          <div className="space-y-4 ml-4 w-full">
             <ActiveFilters
               filters={shirtFilter}
               onRemove={(key) => {

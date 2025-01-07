@@ -4,6 +4,7 @@ import type { CombinedImage, Model, Shirt } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
 import { Download } from "lucide-react";
+import { useState } from "react";
 
 type ResultsAreaProps = {
   models: Model[] | null;
@@ -16,6 +17,8 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
     enabled: !!models && !!shirts,
   });
 
+  const [images, setImages] = useState([]);
+
   const handleDownload = (imageUrl: string) => {
     const link = document.createElement("a");
     link.href = imageUrl;
@@ -27,11 +30,21 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
 
   // TODO This one needs to handle the combination, which is the photoshop script part.
   const handleCombine = () => {
-    alert(
-      `Combining model images ${models
-        ?.map((m) => m.name)
-        .join(", ")} with shirts ${shirts?.map((s) => s.name).join(", ")}...`
-    );
+    // alert(
+    //   `Combining model images ${models
+    //     ?.map((m) => m.name)
+    //     .join(", ")} with shirts ${shirts?.map((s) => s.name).join(", ")}...`
+    // );
+    setImages([]);
+    setImages([
+      ...(models?.map((m) => {
+        return { resultUrl: m.imageUrl };
+      }) || []),
+      ...shirts?.map((m) => {
+        return { resultUrl: m.imageUrl };
+      }),
+    ]);
+    console.log({ images });
   };
 
   const handleDownloadAll = async () => {
@@ -96,14 +109,14 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {!models || models.length === 0 || !shirts || shirts.length === 0 ? (
+        {images?.length === 0 ? (
           <div className="text-center text-muted-foreground">
             Select both a model and a shirt to see results
           </div>
         ) : (
-          <div className="space-y-4">
-            {combinedImages?.map((combined) => (
-              <div key={combined.id} className="relative group">
+          <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
+            {images?.map((combined) => (
+              <div key={combined.resultUrl} className="relative group">
                 <img
                   src={combined.resultUrl}
                   alt="Combined result"

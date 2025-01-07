@@ -36,6 +36,8 @@ export default function ModelSelection({
   const [filteredModels, setFilteredModels] = useState<Model[]>(models || []);
   const [selectedModels, setSelectedModels] = useState<string[]>([]); // Stores the ids of the selected models
 
+  console.log("selectedModels", selectedModels);
+
   // Effect to show the updated list of models in the modelselection as well as changing the selected models.
   useEffect(() => {
     const modelsAfterChange = models
@@ -91,7 +93,23 @@ export default function ModelSelection({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center">
-          <div className="space-y-4 w-full">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() =>
+              selectedModels.length === filteredModels.length
+                ? setSelectedModels([])
+                : setSelectedModels(models?.map((model) => model.imageUrl))
+            } // Fixed onClick handler
+          >
+            <Checkbox
+              className="h-4 w-4"
+              checked={selectedModels.length === filteredModels.length}
+            />
+            Select All
+          </Button>
+          <div className="space-y-4 ml-4 w-full">
             <ActiveFilters
               filters={modelFilters}
               onRemove={(key) => {
