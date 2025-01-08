@@ -101,11 +101,14 @@ export default function ModelSelection({
               selectedModels.length === filteredModels.length
                 ? setSelectedModels([])
                 : setSelectedModels(models?.map((model) => model.imageUrl))
-            } // Fixed onClick handler
+            }
           >
             <Checkbox
               className="h-4 w-4"
-              checked={selectedModels.length === filteredModels.length}
+              checked={
+                selectedModels.length > 0 &&
+                selectedModels.length === filteredModels.length
+              }
             />
             Select All
           </Button>

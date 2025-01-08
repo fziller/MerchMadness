@@ -95,7 +95,10 @@ export default function ShirtSelection({
           >
             <Checkbox
               className="h-4 w-4"
-              checked={selectedShirts.length === filteredShirts.length}
+              checked={
+                selectedShirts.length > 0 &&
+                selectedShirts.length === filteredShirts.length
+              }
             />
             Select All
           </Button>
