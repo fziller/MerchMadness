@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ModelEvent,
   ModelGender,
@@ -23,7 +23,7 @@ import {
   TagShirtSize,
 } from "./filter/FilterEnums";
 import MultiSelectFilter from "./filter/MultiSelectFilter";
-import { RangleSliderFilter } from "./filter/RangeSliderFilter";
+import { RangeSliderFilter } from "./filter/RangeSliderFilter";
 import SingleSelectFilter from "./filter/SingleSelectFilter";
 
 type UploadModalProps = {
@@ -50,9 +50,13 @@ type ShirtData = {
 };
 
 export default function UploadModal({ type, onClose }: UploadModalProps) {
+  // TODO Replace with a useRef hook as we do not need to rerender the view when the input changes!!!!
+  // Can be accessed with ref.current.value!
   const [formData, setFormData] = useState<ModelData | ShirtData>({});
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const nameRef = useRef<HTMLInputElement>(null);
 
   console.log("formData for upload", { formData });
 
@@ -86,6 +90,9 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
           form.append(key, String(value));
         }
       });
+      form.append("name", nameRef?.current?.value ?? "");
+
+      console.log({ form });
 
       const response = await fetch(`/api/${type}s`, {
         method: "POST",
@@ -130,13 +137,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Name</Label>
-            <Input
-              name="name"
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              required
-            />
+            <Input name="name" required type="text" ref={nameRef} />
           </div>
 
           {type === "model" ? (
@@ -154,7 +155,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 }}
                 label={TagModelGender.label}
               />
-              <RangleSliderFilter
+              <RangeSliderFilter
                 key={TagModelHeight.key}
                 label={TagModelHeight.label}
                 min={TagModelHeight.min}
@@ -168,7 +169,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                   })
                 }
               />
-              <RangleSliderFilter
+              <RangeSliderFilter
                 key={TagModelWidth.key}
                 label={TagModelWidth.label}
                 min={TagModelWidth.min}

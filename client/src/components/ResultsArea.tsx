@@ -17,7 +17,7 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
     enabled: !!models && !!shirts,
   });
 
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState<{ resultUrl: string }[]>([]);
 
   const handleDownload = (imageUrl: string) => {
     const link = document.createElement("a");
@@ -29,22 +29,14 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
   };
 
   // TODO This one needs to handle the combination, which is the photoshop script part.
-  const handleCombine = () => {
+  const handleCombine = async () => {
     // alert(
     //   `Combining model images ${models
     //     ?.map((m) => m.name)
     //     .join(", ")} with shirts ${shirts?.map((s) => s.name).join(", ")}...`
     // );
     setImages([]);
-    setImages([
-      ...(models?.map((m) => {
-        return { resultUrl: m.imageUrl };
-      }) || []),
-      ...shirts?.map((m) => {
-        return { resultUrl: m.imageUrl };
-      }),
-    ]);
-    console.log({ images });
+    //
   };
 
   const handleDownloadAll = async () => {
@@ -116,7 +108,7 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
             {images?.map((combined) => (
-              <div key={combined.resultUrl} className="relative group">
+              <div className="relative group">
                 <img
                   src={combined.resultUrl}
                   alt="Combined result"

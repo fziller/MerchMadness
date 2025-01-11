@@ -27,7 +27,7 @@ type RangeTag = {
 };
 type SelectTag = {
   label: string;
-  type: "singleSelect" | "multiSelect";
+  type: "singleSelect" | "multiSelect" | "dropdown";
   options: any[];
   key: string;
 };
@@ -100,6 +100,12 @@ export const TagShirtColor: SelectTag = {
   key: "color",
 };
 
+export const TagShirtBrand: SelectTag = {
+  type: "dropdown",
+  label: "Brand",
+  options: ["AWD", "Gildan", "Stanley"],
+  key: "brand",
+};
 export function isEnumValue<T extends {}>(
   enumType: T,
   value: unknown
@@ -136,6 +142,13 @@ export type FilterConfig = {
     startValue: number;
     selectedValue: number | undefined;
     onValueChange: (value: number | undefined) => void;
+  }[];
+  dropdown?: {
+    label: string;
+    options: any[];
+    selectedOption?: any;
+    onSelectOption: (option: any) => void;
+    key: string;
   }[];
 };
 

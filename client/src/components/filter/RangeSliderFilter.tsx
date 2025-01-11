@@ -11,7 +11,7 @@ type RangeSliderProps = {
   key: string;
 };
 
-export function RangleSliderFilter(props: RangeSliderProps) {
+export function RangeSliderFilter(props: RangeSliderProps) {
   const [actualValue, setActualValue] = useState(
     props.selectedValue ?? props.startValue
   );

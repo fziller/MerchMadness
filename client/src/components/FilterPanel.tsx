@@ -9,11 +9,11 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { FilterConfig } from "./filter/FilterEnums";
 import MultiSelectFilter from "./filter/MultiSelectFilter";
-import { RangleSliderFilter } from "./filter/RangeSliderFilter";
+import { RangeSliderFilter } from "./filter/RangeSliderFilter";
 import SingleSelectFilter from "./filter/SingleSelectFilter";
 
 type FilterPanelProps = {
-  onApplyFilters: () => void;
+  onApplyFilters?: () => void;
   onResetFilters: () => void;
   onClose: () => void;
   title: string;
@@ -81,12 +81,15 @@ export default function FilterPanel({
             ))}
             {/* Range-slider Filter */}
             {multiFilterConfig?.rangeSlider?.map((sliderFilter) => (
-              <RangleSliderFilter {...sliderFilter} />
+              <RangeSliderFilter {...sliderFilter} />
             ))}
             {/* Single-select Filter */}
             {multiFilterConfig?.singleSelect?.map((singleSelectFilter) => (
               <SingleSelectFilter {...singleSelectFilter} />
             ))}
+            {/* {multiFilterConfig?.dropdown?.map((dropdownFilter) => (
+              <DropdownFilter {...dropdownFilter} />
+            ))} */}
           </div>
         </ScrollArea>
 
@@ -101,7 +104,7 @@ export default function FilterPanel({
           </Button>
           <Button
             onClick={() => {
-              onApplyFilters();
+              onApplyFilters ? onApplyFilters() : undefined;
             }}
           >
             Apply Filters

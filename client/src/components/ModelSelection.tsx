@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { ModelState } from "@/hooks/useModelFilter";
 import { filterByType } from "@/lib/utils";
 import type { Model } from "@db/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,9 +15,9 @@ import { MetaData } from "./filter/FilterEnums";
 
 type ModelSelectionProps = {
   onToggleFilters: () => void;
-  modelFilters?: MetaData;
+  modelFilters?: ModelState;
   onSelectedModelsChange: (selectedModels: Model[]) => void;
-  onRemoveFilterFromSelection: (metadata: MetaData) => void;
+  onRemoveFilterFromSelection: (metadata: ModelState) => void;
 };
 
 export default function ModelSelection({

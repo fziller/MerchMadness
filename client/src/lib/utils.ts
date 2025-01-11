@@ -1,4 +1,5 @@
 import { MetaData } from "@/components/filter/FilterEnums";
+import { ShirtState } from "@/hooks/useShirtFilter";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -6,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function filterByType(filters: MetaData, entity: any) {
+export function filterByType(filters: MetaData | ShirtState, entity: any) {
   {
     let filtered = false;
     for (const key in filters) {

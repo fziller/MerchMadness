@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { ShirtState } from "@/hooks/useShirtFilter";
 import { filterByType } from "@/lib/utils";
 import { deleteShirt } from "@/services/shirts";
 import type { Shirt } from "@db/schema";
@@ -15,7 +16,7 @@ import { Checkbox } from "./ui/checkbox";
 
 type ShirtSelectionProps = {
   onToggleFilters: () => void; // Changed to non-optional
-  shirtFilter: MetaData;
+  shirtFilter: ShirtState;
   onSelectedShirtsChange: (selectedShirts: Shirt[]) => void;
   onRemoveFilterFromSelection: (metadata: MetaData) => void;
 };

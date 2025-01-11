@@ -1,10 +1,10 @@
 import {
-  MetaData,
   ModelEvent,
   ModelGender,
   ModelGenre,
   TagModelHeight,
   TagModelWidth,
+  TagShirtBrand,
   TagShirtColor,
   TagShirtSize,
 } from "@/components/filter/FilterEnums";
@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import UploadModal from "@/components/UploadModal";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
+import { ModelActionType, useModelFilter } from "@/hooks/useModelFilter";
+import { ShirtActionType, useShirtFilter } from "@/hooks/useShirtFilter";
 import type { Model, Shirt } from "@db/schema";
 import { useState } from "react";
 
@@ -29,38 +31,9 @@ export default function HomePage() {
   const [showUploadModal, setShowUploadModal] = useState<
     "model" | "shirt" | null
   >(null);
-  const [modelFilters, setModelFilters] = useState<MetaData>({});
-  const [shirtFilters, setShirtFilters] = useState<MetaData>({});
 
-  // Needed for filtering models
-  const [modelGenre, setModelGenre] = useState<ModelGenre[]>([]);
-  const [modelEvent, setModelEvent] = useState<ModelEvent[]>([]);
-  const [modelGender, setModelGender] = useState<ModelGender | undefined>(
-    undefined
-  );
-  const [modelHeight, setModelHeight] = useState<number | undefined>(undefined);
-  const [modelWidth, setModelWidth] = useState<number | undefined>(undefined);
-
-  // Needed for filtering Shirts
-  const [shirtSize, setShirtSize] = useState<string[]>([]);
-  const [shirtColors, setShirtColors] = useState<string[]>([]);
-
-  const handleModelFilters = () => {
-    setModelFilters({
-      gender: modelGender,
-      height: modelHeight,
-      width: modelWidth,
-      genre: modelGenre,
-      event: modelEvent,
-    });
-  };
-
-  const handleShirtFilters = () => {
-    setShirtFilters({
-      size: shirtSize,
-      colors: shirtColors,
-    });
-  };
+  const { state: shirtState, dispatch: shirtDispatch } = useShirtFilter();
+  const { state: modelState, dispatch: modelDispatch } = useModelFilter();
 
   const toggleModelFilters = () => {
     setShowModelFilters((prev) => !prev);
@@ -110,8 +83,9 @@ export default function HomePage() {
             <div className="space-y-6">
               {showModelFilters && (
                 <FilterPanel
-                  onApplyFilters={() => handleModelFilters()}
-                  onResetFilters={() => setModelFilters({})}
+                  onResetFilters={() =>
+                    modelDispatch({ type: ModelActionType.RESET, payload: "" })
+                  }
                   title="Model Filters"
                   onClose={() => setShowModelFilters(false)}
                   multiFilterConfig={{
@@ -120,8 +94,12 @@ export default function HomePage() {
                         label: "Gender",
                         options: Object.values(ModelGender),
                         key: "gender",
-                        onSelectOption: (option) => setModelGender(option),
-                        selectedOption: modelGender,
+                        onSelectOption: (option) =>
+                          modelDispatch({
+                            type: ModelActionType.SET_GENDER,
+                            payload: option,
+                          }),
+                        selectedOption: modelState.gender,
                       },
                     ],
                     multiSelect: [
@@ -129,31 +107,45 @@ export default function HomePage() {
                         label: "Genre",
                         options: Object.values(ModelGenre),
                         key: "genre",
-                        selectedOptions: modelGenre,
-                        onSelectOption: (option) => setModelGenre(option),
+                        selectedOptions: modelState.genre,
+                        onSelectOption: (option) =>
+                          modelDispatch({
+                            type: ModelActionType.SET_GENRE,
+                            payload: option,
+                          }),
                       },
                       {
                         label: "Event",
                         options: Object.values(ModelEvent),
                         key: "event",
-                        selectedOptions: modelEvent,
-                        onSelectOption: (option) => setModelEvent(option),
+                        selectedOptions: modelState.genre,
+                        onSelectOption: (option) =>
+                          modelDispatch({
+                            type: ModelActionType.SET_EVENT,
+                            payload: option,
+                          }),
                       },
                     ],
                     rangeSlider: [
                       {
                         ...TagModelHeight,
                         startValue: TagModelHeight.min,
-                        selectedValue: modelHeight,
-                        onValueChange: (value) => setModelHeight(value),
+                        selectedValue: modelState.height,
+                        onValueChange: (value) =>
+                          modelDispatch({
+                            type: ModelActionType.SET_HEIGHT,
+                            payload: value ?? TagModelHeight.min,
+                          }),
                       },
                       {
                         ...TagModelWidth,
                         startValue: TagModelWidth.min,
-                        selectedValue: modelWidth,
-                        onValueChange: (value) => {
-                          setModelWidth(value);
-                        },
+                        selectedValue: modelState.width,
+                        onValueChange: (value) =>
+                          modelDispatch({
+                            type: ModelActionType.SET_WIDTH,
+                            payload: value ?? TagModelWidth.min,
+                          }),
                       },
                     ],
                   }}
@@ -162,24 +154,50 @@ export default function HomePage() {
               {showShirtFilters && (
                 <FilterPanel
                   title="Shirt Filters"
-                  onApplyFilters={() => handleShirtFilters()}
+                  // onApplyFilters={() => handleShirtFilters()}
                   onClose={() => setShowShirtFilters(false)}
-                  onResetFilters={() => setShirtFilters({})}
+                  onResetFilters={() =>
+                    shirtDispatch({
+                      type: ShirtActionType.RESET,
+                      payload: "",
+                    })
+                  }
                   multiFilterConfig={{
                     multiSelect: [
                       {
                         ...TagShirtSize,
                         label: TagShirtSize.label,
                         key: TagShirtSize.key,
-                        selectedOptions: shirtSize,
-                        onSelectOption: (option) => setShirtSize(option),
+                        selectedOptions: shirtState.size,
+                        onSelectOption: (option) =>
+                          shirtDispatch({
+                            type: ShirtActionType.SET_SIZE,
+                            payload: option,
+                          }),
                       },
                       {
                         ...TagShirtColor,
                         label: TagShirtColor.label,
                         key: TagShirtColor.key,
-                        selectedOptions: shirtColors,
-                        onSelectOption: (option) => setShirtColors(option),
+                        selectedOptions: shirtState.color,
+                        onSelectOption: (option) =>
+                          shirtDispatch({
+                            type: ShirtActionType.SET_COLOR,
+                            payload: option,
+                          }),
+                      },
+                    ],
+                    dropdown: [
+                      {
+                        ...TagShirtBrand,
+                        label: TagShirtBrand.label,
+                        key: TagShirtBrand.key,
+                        selectedOption: shirtState.brand,
+                        onSelectOption: (option) =>
+                          shirtDispatch({
+                            type: ShirtActionType.SET_BRAND,
+                            payload: option,
+                          }),
                       },
                     ],
                   }}
@@ -193,28 +211,34 @@ export default function HomePage() {
           <div className="space-y-6 max-w-4xxl mx-auto">
             <ModelSelection
               onToggleFilters={toggleModelFilters}
-              modelFilters={modelFilters}
+              modelFilters={modelState}
               onSelectedModelsChange={(models) => setSelectedModels(models)}
               onRemoveFilterFromSelection={(metadata) => {
-                // We possibly need to revert any filter data, if it was removed via badge in the selection view.
-                setModelGender(metadata.gender as ModelGender);
-                setModelGenre(metadata.genre as ModelGenre[]);
-                setModelEvent(metadata.event as ModelEvent[]);
-                setModelHeight(metadata.height as number);
-                setModelWidth(metadata.width as number);
-                setModelFilters(metadata);
+                modelDispatch({
+                  type: ModelActionType.ALL,
+                  payload: metadata,
+                });
               }}
             />
             <ShirtSelection
               onToggleFilters={toggleShirtFilters}
-              shirtFilter={shirtFilters}
+              shirtFilter={shirtState}
               onSelectedShirtsChange={(shirts) => setSelectedShirts(shirts)}
               onRemoveFilterFromSelection={(metadata) => {
-                // We possibly need to revert any filter data, if it was removed via badge in the selection view.
-                setShirtColors(metadata.colors as string[]);
-                setShirtSize(metadata.size as string[]);
+                shirtDispatch({
+                  type: ShirtActionType.SET_BRAND,
+                  payload: (metadata.brand as string) ?? "",
+                });
 
-                setShirtFilters(metadata);
+                shirtDispatch({
+                  type: ShirtActionType.SET_COLOR,
+                  payload: (metadata.color as string[]) ?? [],
+                });
+
+                shirtDispatch({
+                  type: ShirtActionType.SET_SIZE,
+                  payload: (metadata.brand as string[]) ?? [],
+                });
               }}
             />
             <ResultsArea models={selectedModels} shirts={selectedShirts} />
