@@ -1,4 +1,11 @@
-import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export type DropdownFilterProps = {
   selectedOption?: string;
@@ -9,18 +16,33 @@ export type DropdownFilterProps = {
 };
 
 export default function DropdownFilter(props: DropdownFilterProps) {
+  const [selectedValue, setSelectedValue] = useState<string | undefined>(
+    undefined
+  );
+
   return (
     <div className="space-y-2">
-      <h3 className="font-medium">{props.label}</h3>
-      <div className="grid grid-cols-2 gap-2">
-        <DropdownMenu>
-          {props.options.map((option) => (
-            <div key={option} className="flex items-center space-x-2">
-              <DropdownMenuItem>{option}</DropdownMenuItem>
-              <label htmlFor={`option-${option}-2`}>{option}</label>
-            </div>
-          ))}
-        </DropdownMenu>
+      <h3 className="font-bold">{props.label}</h3>
+      <div className="">
+        <Select
+          onValueChange={(value) => {
+            setSelectedValue(value);
+            props.onSelectOption(value);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue
+              placeholder={selectedValue ?? "Select a " + props.label + " ..."}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {props.options.map((option) => (
+              <div key={option} className="flex items-center space-x-2">
+                <SelectItem value={option}>{option}</SelectItem>
+              </div>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

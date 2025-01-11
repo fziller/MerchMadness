@@ -1,11 +1,9 @@
 export enum ModelGenre {
-  FASHION = "Fashion",
-  STREETWEAR = "Streetwear",
-  CASUAL = "Casual",
-  ADVENTURE = "Adventure",
-  CAMPING = "Camping",
-  FUTURE = "Future",
-  BEACH = "Beach",
+  CORE = "Core",
+  METAL = "Metal",
+  ROCK = "Rock",
+  INDIE = "Indie",
+  HIPHOP = "HipHop",
 }
 
 export enum ModelGender {

@@ -7,6 +7,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X } from "lucide-react";
 import { useState } from "react";
+import DropdownFilter from "./filter/DropdownFilter";
 import { FilterConfig } from "./filter/FilterEnums";
 import MultiSelectFilter from "./filter/MultiSelectFilter";
 import { RangeSliderFilter } from "./filter/RangeSliderFilter";
@@ -87,9 +88,9 @@ export default function FilterPanel({
             {multiFilterConfig?.singleSelect?.map((singleSelectFilter) => (
               <SingleSelectFilter {...singleSelectFilter} />
             ))}
-            {/* {multiFilterConfig?.dropdown?.map((dropdownFilter) => (
+            {multiFilterConfig?.dropdown?.map((dropdownFilter) => (
               <DropdownFilter {...dropdownFilter} />
-            ))} */}
+            ))}
           </div>
         </ScrollArea>
 

@@ -26,7 +26,7 @@ export function RangeSliderFilter(props: RangeSliderProps) {
 
   return (
     <div key={props.key} className="space-y-4">
-      <h3 className="font-medium">{props.label}</h3>
+      <h3 className="font-bold">{props.label}</h3>
       <Slider
         min={props.min}
         max={props.max}

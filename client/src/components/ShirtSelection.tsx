@@ -52,6 +52,8 @@ export default function ShirtSelection({
     },
   });
 
+  console.log("Shirts", shirtFilter);
+
   const [filteredShirts, setFilteredShirts] = useState<Shirt[]>(shirts || []);
   useEffect(() => {
     const shirtsAfterChange = shirts

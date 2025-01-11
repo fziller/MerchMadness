@@ -17,7 +17,7 @@ export default function MultiSelectFilter(props: MultiSelectProps) {
 
   return (
     <div className="space-y-2">
-      <h3 className="font-medium">{props.label}</h3>
+      <h3 className="font-bold">{props.label}</h3>
       <div className="grid grid-cols-2 gap-2">
         {props.options
           ? props.options.map((option) => {

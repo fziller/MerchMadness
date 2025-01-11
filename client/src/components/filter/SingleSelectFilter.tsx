@@ -11,7 +11,7 @@ export type SingleSelectFilterProps = {
 export default function SingleSelectFilter(props: SingleSelectFilterProps) {
   return (
     <div className="space-y-2">
-      <h3 className="font-medium">{props.label}</h3>
+      <h3 className="font-bold">{props.label}</h3>
       <div className="grid grid-cols-2 gap-2">
         {props.options.map((option) => (
           <div key={option} className="flex items-center space-x-2">
