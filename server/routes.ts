@@ -1,5 +1,5 @@
 import { db } from "@db";
-import { combinedImages, models, shirts } from "@db/schema";
+import { combinedImages, models, shirts, users } from "@db/schema";
 import { eq } from "drizzle-orm";
 import type { Express } from "express";
 import express from "express";
@@ -200,6 +200,30 @@ export function registerRoutes(app: Express): Server {
       .returning();
 
     res.json(newCombined);
+  });
+
+  // Users API
+  app.post("/api/users/:id", async (req, res) => {
+    const { id, isAdmin, username, password } = req.body;
+    const [user] = await db
+      .update(users)
+      .set({ id, isAdmin, username, password })
+      .where(eq(users.id, parseInt(req.params.id)))
+      .returning();
+    res.json(user);
+  });
+
+  app.get("/api/users", async (req, res) => {
+    const allUsers = await db.select().from(users);
+    res.json(allUsers);
+  });
+
+  app.delete("/api/users/:id", async (req, res) => {
+    const [user] = await db
+      .delete(users)
+      .where(eq(users.id, parseInt(req.params.id)))
+      .returning();
+    res.json(user);
   });
 
   const httpServer = createServer(app);

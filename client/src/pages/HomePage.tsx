@@ -14,6 +14,7 @@ import ResultsArea from "@/components/ResultsArea";
 import ShirtSelection from "@/components/ShirtSelection";
 import { Button } from "@/components/ui/button";
 import UploadModal from "@/components/UploadModal";
+import UserManagementModal from "@/components/UserManagementModal";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import { ModelActionType, useModelFilter } from "@/hooks/useModelFilter";
@@ -28,6 +29,7 @@ export default function HomePage() {
   const [selectedShirts, setSelectedShirts] = useState<Shirt[] | null>(null);
   const [showModelFilters, setShowModelFilters] = useState(false);
   const [showShirtFilters, setShowShirtFilters] = useState(false);
+  const [showUserManagementModal, setShowUserManagementModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState<
     "model" | "shirt" | null
   >(null);
@@ -248,40 +250,39 @@ export default function HomePage() {
             <ResultsArea models={selectedModels} shirts={selectedShirts} />
           </div>
         </main>
-
         {/* Right side menu */}
-        <aside className="w-64 border-l bg-card p-4">
-          <div className="space-y-4">
-            <h2 className="font-semibold text-lg">Actions</h2>
-            <div className="space-y-2">
-              <>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => setShowUploadModal("model")}
-                >
-                  Upload Model
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => setShowUploadModal("shirt")}
-                >
-                  Upload Shirt
-                </Button>
-                {user?.isAdmin && (
+        {user?.isAdmin && (
+          <aside className="w-64 border-l bg-card p-4">
+            <div className="space-y-4">
+              <h2 className="font-semibold text-lg">Actions</h2>
+              <div className="space-y-2">
+                <>
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={() => console.log("Admin panel")}
+                    onClick={() => setShowUploadModal("model")}
+                  >
+                    Upload Model
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => setShowUploadModal("shirt")}
+                  >
+                    Upload Shirt
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => setShowUserManagementModal(true)}
                   >
                     User Management
                   </Button>
-                )}
-              </>
+                </>
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
       </div>
 
       {/* Upload Modals */}
@@ -289,6 +290,11 @@ export default function HomePage() {
         <UploadModal
           type={showUploadModal}
           onClose={() => setShowUploadModal(null)}
+        />
+      )}
+      {showUserManagementModal && (
+        <UserManagementModal
+          onClose={() => setShowUserManagementModal(false)}
         />
       )}
     </div>

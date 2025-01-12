@@ -1,18 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { User } from "@db/schema";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 type LoginData = {
   username: string;
   password: string;
 };
 
-type RequestResult = {
-  ok: true;
-  user?: User;
-} | {
-  ok: false;
-  message: string;
-};
+type RequestResult =
+  | {
+      ok: true;
+      user?: User;
+    }
+  | {
+      ok: false;
+      message: string;
+    };
 
 async function handleRequest(
   url: string,
@@ -43,8 +45,8 @@ async function handleRequest(
 }
 
 async function fetchUser(): Promise<User | null> {
-  const response = await fetch('/api/user', {
-    credentials: 'include'
+  const response = await fetch("/api/user", {
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -60,31 +62,35 @@ async function fetchUser(): Promise<User | null> {
 export function useUser() {
   const queryClient = useQueryClient();
 
-  const { data: user, error, isLoading } = useQuery<User | null, Error>({
-    queryKey: ['user'],
+  const {
+    data: user,
+    error,
+    isLoading,
+  } = useQuery<User | null, Error>({
+    queryKey: ["user"],
     queryFn: fetchUser,
     staleTime: Infinity,
-    retry: false
+    retry: false,
   });
 
   const loginMutation = useMutation<RequestResult, Error, LoginData>({
-    mutationFn: (userData) => handleRequest('/api/login', 'POST', userData),
+    mutationFn: (userData) => handleRequest("/api/login", "POST", userData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries();
     },
   });
 
   const logoutMutation = useMutation<RequestResult, Error>({
-    mutationFn: () => handleRequest('/api/logout', 'POST'),
+    mutationFn: () => handleRequest("/api/logout", "POST"),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
     },
   });
 
   const registerMutation = useMutation<RequestResult, Error, LoginData>({
-    mutationFn: (userData) => handleRequest('/api/register', 'POST', userData),
+    mutationFn: (userData) => handleRequest("/api/register", "POST", userData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
     },
   });
 

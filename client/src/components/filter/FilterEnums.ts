@@ -48,13 +48,11 @@ export const TagModelGenre: SelectTag = {
   label: "Genre",
   type: "multiSelect",
   options: [
-    ModelGenre.FASHION,
-    ModelGenre.STREETWEAR,
-    ModelGenre.CASUAL,
-    ModelGenre.ADVENTURE,
-    ModelGenre.CAMPING,
-    ModelGenre.FUTURE,
-    ModelGenre.BEACH,
+    ModelGenre.CORE,
+    ModelGenre.METAL,
+    ModelGenre.ROCK,
+    ModelGenre.INDIE,
+    ModelGenre.HIPHOP,
   ],
   key: "genre",
 };
