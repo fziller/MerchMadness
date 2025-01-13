@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useUser } from "@/hooks/use-user";
 import { Trash2 } from "lucide-react";
 import ActiveFilters from "./ActiveFilters";
 import { MetaData } from "./filter/FilterEnums";
@@ -24,6 +25,7 @@ export default function ImageViewModal({
   onClose,
   onDelete,
 }: ImageViewModalProps) {
+  const { user } = useUser();
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this image?")) {
       onDelete();
@@ -36,14 +38,16 @@ export default function ImageViewModal({
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             {title}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-destructive"
-              onClick={handleDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {(user?.isAdmin || user?.username === "admin") && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive"
+                onClick={handleDelete}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </DialogTitle>
         </DialogHeader>
         <div className="relative">

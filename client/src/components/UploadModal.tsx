@@ -95,7 +95,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
       });
       form.append("name", nameRef?.current?.value ?? "");
 
-      const response = await fetch(`/api/users/1`, {
+      const response = await fetch(`/api/${type}s`, {
         method: "POST",
         body: form,
         credentials: "include",

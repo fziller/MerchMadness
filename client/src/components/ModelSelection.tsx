@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/use-user";
 import { ModelState } from "@/hooks/useModelFilter";
 import { filterByType } from "@/lib/utils";
 import type { Model } from "@db/schema";
@@ -28,6 +29,7 @@ export default function ModelSelection({
 }: ModelSelectionProps) {
   const [selectedImage, setSelectedImage] = useState<Model | null>(null);
   const { toast } = useToast();
+  const { user } = useUser();
   const queryClient = useQueryClient();
   const [changeFilterValue, setChangeFilterValue] = useState(false);
 
@@ -222,23 +224,29 @@ export default function ModelSelection({
                         <p>No Image</p>
                       </div>
                     )}
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="absolute top-1 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this model?"
-                          )
-                        ) {
-                          deleteMutation.mutate(model.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+
+                    {
+                      // Only admins should be allowed to delete models
+                      (user?.isAdmin || user?.username === "admin") && (
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="absolute top-1 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this model?"
+                              )
+                            ) {
+                              deleteMutation.mutate(model.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )
+                    }
                   </div>
                 </div>
               );

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/use-user";
 import { ShirtState } from "@/hooks/useShirtFilter";
 import { filterByType } from "@/lib/utils";
 import { deleteShirt } from "@/services/shirts";
@@ -30,6 +31,7 @@ export default function ShirtSelection({
   const { data: shirts } = useQuery<Shirt[]>({
     queryKey: ["/api/shirts"],
   });
+  const { user } = useUser();
   const [changeFilterValue, setChangeFilterValue] = useState(false);
   const [selectedShirts, setSelectedShirts] = useState<string[]>([]); // Stores the imageUrls of the selected models
 
@@ -203,23 +205,25 @@ export default function ShirtSelection({
                           setSelectedImage(shirt);
                         }}
                       />
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (
-                            window.confirm(
-                              "Are you sure you want to delete this shirt?"
-                            )
-                          ) {
-                            deleteMutation.mutate(shirt.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {(user?.isAdmin || user?.username === "admin") && (
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this shirt?"
+                              )
+                            ) {
+                              deleteMutation.mutate(shirt.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
