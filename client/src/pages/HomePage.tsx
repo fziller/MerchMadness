@@ -251,7 +251,7 @@ export default function HomePage() {
           </div>
         </main>
         {/* Right side menu */}
-        {user?.isAdmin && (
+        {(user?.isAdmin || user?.username === "admin") && (
           <aside className="w-64 border-l bg-card p-4">
             <div className="space-y-4">
               <h2 className="font-semibold text-lg">Actions</h2>

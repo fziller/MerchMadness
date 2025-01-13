@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import DropdownFilter from "./filter/DropdownFilter";
 import {
   ModelEvent,
   ModelGender,
@@ -19,6 +20,7 @@ import {
   TagModelGenre,
   TagModelHeight,
   TagModelWidth,
+  TagShirtBrand,
   TagShirtColor,
   TagShirtSize,
 } from "./filter/FilterEnums";
@@ -47,6 +49,7 @@ type ShirtData = {
   height?: number;
   size: string[];
   color: string[];
+  brand: string;
 };
 
 export default function UploadModal({ type, onClose }: UploadModalProps) {
@@ -225,6 +228,15 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                   setFormData({ ...formData, color: selectedOptions });
                 }}
                 label={TagShirtColor.label}
+              />
+              <DropdownFilter
+                key={TagShirtBrand.key}
+                options={TagShirtBrand.options}
+                selectedOption={formData.brand}
+                onSelectOption={(value) => {
+                  setFormData({ ...formData, brand: value });
+                }}
+                label={TagShirtBrand.label}
               />
             </>
           )}
