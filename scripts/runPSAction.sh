@@ -15,11 +15,15 @@
 ###############
 
 # Define variables to make the script more flexible
-ACTION_FILE="Impericon_T-shirt_Woman.atn"
-SCRIPT_FILE="triggerMerchMadnessAction.jsx"
-MODEL_FILE="T-shirt_Women_Model.psb"
-SHIRT_FILE="T-shirt_Women_Motiv1.webp"
+ACTION_FILE="${PWD}/photoshop/Impericon_T-shirt_Woman.atn"
+SHIRT_FILE="${PWD}/shirt/T-shirt_Women_Motiv1.webp"
+MODEL_FILE="${PWD}/model/T-shirt_Women_Model.psb"
+LAYER_NAME="T-shirt_women"
+ACTION_NAME="Impericon_T-shirt_Woman"
+RESULT_FILE_PATH="${PWD}/result/result.jpg"
+# RESULT_FILE_PATH="~/Downloads/merchmadness_result.jpg"
 PS_APP="Adobe Photoshop 2025"
+SCRIPT_FILE="triggerMerchMadnessAction.jsx"
 
 # Unless we find a better way of executing the action, we need to close Photoshop beforehand.
 PS_ID=$(ps -ax | grep "Photoshop" | head -1 | awk '{print $1;}')
@@ -36,22 +40,13 @@ sleep 5
 # Execution #
 #############
 
-# 1. Automation should be available in the photoshop directory of the repo (Maybe uploaded?)
-# 2. Script should be available in the script directory of the repo
-echo "Step 1"
-sudo cp scripts/${SCRIPT_FILE} /Applications/Adobe\ Photoshop\ 2025/Presets/Scripts/
-echo "Step 2"
-sudo cp photoshop/${ACTION_FILE} /Applications/Adobe\ Photoshop\ 2025/Presets/Actions/
-echo "Step 3"
-sudo cp model/${MODEL_FILE} /Applications/Adobe\ Photoshop\ 2025/Presets/Scripts/
-echo "Step 4"
-sudo cp shirt/${SHIRT_FILE} /Applications/Adobe\ Photoshop\ 2025/Presets/Scripts/
-
-# 5. Now we need to open the model file
-# TODO Adapt the application name
-
-echo "Step 5"
-open -a "${PS_APP}" --args -r "/Applications/${PS_APP}/Presets/Scripts/${SCRIPT_FILE}"
+ACTION_FILE=${ACTION_FILE} \
+SHIRT_FILE=${SHIRT_FILE} \
+MODEL_FILE=${MODEL_FILE} \
+LAYER_NAME=${LAYER_NAME} \
+ACTION_NAME=${ACTION_NAME} \
+RESULT_FILE_PATH=${RESULT_FILE_PATH} \
+open -a "${PS_APP}" --args -r "${PWD}/scripts/${SCRIPT_FILE}"
 
 # TODO
 # Copy the image file into clipboard
