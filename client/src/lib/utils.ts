@@ -13,7 +13,7 @@ export function filterByType(filters: MetaData | ShirtState, entity: any) {
     for (const key in filters) {
       // String types need to match exactly.
       // Example: Gender - if male is selected, female will be filtered.
-      if (typeof filters[key] === "string") {
+      if (typeof filters[key] === "string" && filters[key] !== "") {
         console.log(
           "Filtering by string",
           filters[key],

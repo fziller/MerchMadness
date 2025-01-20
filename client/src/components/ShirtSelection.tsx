@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import { ShirtState } from "@/hooks/useShirtFilter";
+import useShirts from "@/hooks/useShirts";
 import { filterByType } from "@/lib/utils";
-import { deleteShirt } from "@/services/shirts";
 import type { Shirt } from "@db/schema";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
@@ -32,31 +31,15 @@ export default function ShirtSelection({
     queryKey: ["/api/shirts"],
   });
   const { user } = useUser();
+  const { deleteSingleShirt } = useShirts();
+
   const [changeFilterValue, setChangeFilterValue] = useState(false);
   const [selectedShirts, setSelectedShirts] = useState<string[]>([]); // Stores the imageUrls of the selected models
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteShirt,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["/api/shirts"]);
-      toast({
-        title: "Shirt deleted successfully!",
-        description: "",
-        kind: "success",
-      });
-    },
-    onError: (err: any) => {
-      toast({
-        title: "Error deleting shirt!",
-        description: err.message,
-        kind: "error",
-      });
-    },
-  });
-
-  console.log("Shirts", shirtFilter);
-
   const [filteredShirts, setFilteredShirts] = useState<Shirt[]>(shirts || []);
+
+  console.log("Shirts", { shirtFilter, shirts, filteredShirts });
+
   useEffect(() => {
     const shirtsAfterChange = shirts
       ? shirtFilter
@@ -78,8 +61,6 @@ export default function ShirtSelection({
   }, [shirts, shirtFilter, changeFilterValue, selectedShirts]);
 
   const [selectedImage, setSelectedImage] = useState<Shirt | null>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   return (
     <Card>
@@ -217,7 +198,7 @@ export default function ShirtSelection({
                                 "Are you sure you want to delete this shirt?"
                               )
                             ) {
-                              deleteMutation.mutate(shirt.id);
+                              deleteSingleShirt.mutate(shirt.id);
                             }
                           }}
                         >
@@ -244,7 +225,7 @@ export default function ShirtSelection({
                       "Are you sure you want to delete this shirt?"
                     )
                   ) {
-                    deleteMutation.mutate(selectedImage.id);
+                    deleteSingleShirt.mutate(selectedImage.id);
                     setSelectedImage(null);
                   }
                 }}

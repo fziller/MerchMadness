@@ -1,5 +1,5 @@
 import { db } from "@db";
-import { combinedImages, models, shirts, users } from "@db/schema";
+import { combinedImages, models, Shirt, shirts, users } from "@db/schema";
 import { eq } from "drizzle-orm";
 import type { Express } from "express";
 import express from "express";
@@ -191,28 +191,21 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.post("/api/combined", async (req, res) => {
-    const { modelId, shirtId, resultUrl } = req.body;
+    const { modelId, shirt }: { modelId: string; shirt: Shirt } = req.body;
     console.log("request params", {
       modelId,
-      shirtId,
-      resultUrl,
+      shirt,
       body: req.body,
     });
-    const resultFileName = `result_${modelId}_${shirtId}_${nanoid(8)}.jpg`;
-    shell.exec(`scripts/runPSAction.sh -f ${resultFileName}`);
-    let file;
-    for (let i = 0; i < 10; i++) {
-      try {
-        console.log(i);
-        // We need to wait for the result to be properly finished.
-        file = fs.readFileSync(join(uploadsDir, resultFileName));
-        break;
-      } catch (error) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      }
-    }
+    const resultFileName = `result_${modelId}_${shirt.id}_${nanoid(8)}.jpg`;
+
+    const bash = shell.exec(
+      `scripts/runPSAction.sh -f ${resultFileName} -s ${shirt.imageUrl}`
+    );
+    console.log({ bash });
     console.log("PS Action Triggered");
 
+    // TODO do we need to store it also in the database?
     res.json({ resultUrl: `uploads/${resultFileName}` });
 
     // const [newCombined] = await db

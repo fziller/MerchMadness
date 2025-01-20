@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import useCombination from "@/hooks/useCombination";
+import useDownloadFiles from "@/hooks/useDownloadFiles";
 import type { CombinedImage, Model, Shirt } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
-import JSZip from "jszip";
 import { Download } from "lucide-react";
 import { useState } from "react";
+import ClipLoader from "react-spinners/ClipLoader";
 
 type ResultsAreaProps = {
   models: Model[] | null;
@@ -19,84 +20,24 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
   });
 
   const { postCombination } = useCombination();
+  const { zipAndDownload, downloadFile } = useDownloadFiles();
 
   const [images, setImages] = useState<{ resultUrl: string }[]>([]);
 
-  const handleDownload = (imageUrl: string) => {
-    const link = document.createElement("a");
-    link.href = imageUrl;
-    link.download = "combined-image.jpg";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  console.log("ResultArea", { models, shirts, images });
 
-  console.log("ResultArea", { images });
-
-  // TODO This one needs to handle the combination, which is the photoshop script part.
   const handleCombine = async () => {
-    const result = await postCombination.mutateAsync({
-      modelId: "123",
-      shirtId: "456",
-      onSuccess: (resultUrl) => {
-        setImages([{ resultUrl }]);
-      },
-    });
-    console.log({ result });
-    // alert(
-    //   `Combining model images ${models
-    //     ?.map((m) => m.name)
-    //     .join(", ")} with shirts ${shirts?.map((s) => s.name).join(", ")}...`
-    // );
-    // setImages([]);
-    //
-  };
-
-  const handleDownloadAll = async () => {
-    await handleZipFiles();
-  };
-
-  const handleZipFiles = async () => {
-    const zip = new JSZip();
-    const imagesFolder = zip.folder("images");
-    if (!imagesFolder) {
-      throw new Error("Failed to create zip folder");
-    }
-    // TODO This needs to be replaced with the actually combined images
-    if (!models) return;
-    for (const model in models) {
-      await fetch(models[model].imageUrl)
-        .then(async (response) => {
-          const ab = response.arrayBuffer();
-          // TODO File extension needs to be changed (configurable?)
-          imagesFolder.file(`${models[model].id}.jpg`, ab);
-        })
-        .catch((error) => {
-          console.log("Fetch images", error);
+    shirts &&
+      shirts.map(async (shirt) => {
+        const result = await postCombination.mutateAsync({
+          modelId: "123",
+          shirt,
+          onSuccess: (resultUrl) => {
+            setImages((prev) => [...prev, { resultUrl }]);
+          },
         });
-    }
-
-    for (const shirt in shirts) {
-      await fetch(shirts[shirt].imageUrl)
-        .then(async (response) => {
-          const ab = response.arrayBuffer();
-          // TODO File extension needs to be changed (configurable?)
-          imagesFolder.file(`${shirts[shirt].id}.jpg`, ab);
-        })
-        .catch((error) => {
-          console.log("Fetch images", error);
-        });
-    }
-
-    const zipContent = await zip.generateAsync({ type: "blob" });
-    const url = window.URL.createObjectURL(zipContent);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "selected_images.zip";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+        console.log({ result });
+      });
   };
 
   return (
@@ -107,14 +48,22 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
           <Button onClick={handleCombine}>Combine</Button>
           <Button
             variant="outline"
-            onClick={async () => await handleDownloadAll()}
+            onClick={async () => await zipAndDownload(images)}
           >
             Download All
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setImages([]);
+            }}
+          >
+            Clear
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        {images?.length === 0 ? (
+        {images?.length === 0 && !postCombination.isPending ? (
           <div className="text-center text-muted-foreground">
             Select both a model and a shirt to see results
           </div>
@@ -131,12 +80,13 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
                   variant="secondary"
                   size="icon"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={async () => await handleDownload(combined.resultUrl)}
+                  onClick={async () => downloadFile(combined.resultUrl)}
                 >
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
             ))}
+            <ClipLoader loading={postCombination.isPending} color="blue" />
           </div>
         )}
       </CardContent>

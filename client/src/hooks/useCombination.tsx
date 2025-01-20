@@ -1,3 +1,4 @@
+import { Shirt } from "@db/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "./use-toast";
 
@@ -7,16 +8,16 @@ const useCombination = () => {
   const postCombination = useMutation({
     mutationFn: async ({
       modelId,
-      shirtId,
+      shirt,
       onSuccess,
     }: {
       modelId: string;
-      shirtId: string;
+      shirt: Shirt;
       onSuccess?: (resultUrl: string) => void;
     }) => {
       const response = await fetch(`/api/combined`, {
         method: "POST",
-        body: JSON.stringify({ modelId, shirtId }),
+        body: JSON.stringify({ modelId, shirt }),
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
