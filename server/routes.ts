@@ -1,5 +1,12 @@
 import { db } from "@db";
-import { combinedImages, models, Shirt, shirts, users } from "@db/schema";
+import {
+  combinedImages,
+  Model,
+  models,
+  Shirt,
+  shirts,
+  users,
+} from "@db/schema";
 import { eq } from "drizzle-orm";
 import type { Express } from "express";
 import express from "express";
@@ -30,9 +37,15 @@ const upload = multer({
   storage: multer.diskStorage({
     destination: uploadsDir,
     filename: (req, file, cb) => {
+      console.log({ req, file });
       // Clean the original filename and add timestamp
       const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, "_");
-      cb(null, `${Date.now()}-${cleanName}`);
+      cb(
+        null,
+        `${
+          req.url.endsWith("models") ? "model_doc" : "shirt"
+        }_${Date.now()}_${cleanName}`
+      );
     },
   }),
 });
@@ -55,13 +68,26 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).send("No image file uploaded");
       }
 
-      const imageUrl = `/uploads/${req.file.filename}`;
+      console.log("Our body when uploading models", { body: req.body });
+
+      const documentUrl = `/uploads/${req.file.filename}`;
+      const resultFileName = `model_img_${nanoid(8)}.jpg`;
+
+      // TODO We need to check for the result of the bash execution and make sure to fail the request if unsuccessful
+      const bash = shell.exec(
+        `scripts/runGetImageFromPSFile.sh -f ${resultFileName} -m ${documentUrl}`
+      );
+
+      console.log("Upload model document", { bash });
+
+      const imageUrl = `/uploads/${resultFileName}`;
       const metadata = { ...req.body, name: undefined, image_url: undefined };
       const [newModel] = await db
         .insert(models)
         .values({
           name: req.body.name,
-          imageUrl: imageUrl,
+          imageUrl,
+          documentUrl,
           metadata: metadata,
         })
         .returning();
@@ -92,6 +118,11 @@ export function registerRoutes(app: Express): Server {
         "..",
         "public",
         model.imageUrl.replace(/^\/uploads\//, "")
+      );
+      console.log(
+        "Deleting model file",
+        filePath,
+        join(__dirname, "..", "public", model.imageUrl)
       );
       try {
         await fs.promises.unlink(filePath);
@@ -182,42 +213,80 @@ export function registerRoutes(app: Express): Server {
 
   // Combined Images API
   app.get("/api/combined", async (req, res) => {
-    const results = await db
-      .select()
-      .from(combinedImages)
-      .leftJoin(models, eq(combinedImages.modelId, models.id))
-      .leftJoin(shirts, eq(combinedImages.shirtId, shirts.id));
+    const results = await db.select().from(combinedImages);
+    // TODO Double check if we need any model information on the combined image later.
+    // .leftJoin(models, eq(combinedImages.modelId, models.id))
+    // .leftJoin(shirts, eq(combinedImages.shirtId, shirts.id));
     res.json(results);
   });
 
   app.post("/api/combined", async (req, res) => {
-    const { modelId, shirt }: { modelId: string; shirt: Shirt } = req.body;
-    console.log("request params", {
-      modelId,
-      shirt,
-      body: req.body,
-    });
-    const resultFileName = `result_${modelId}_${shirt.id}_${nanoid(8)}.jpg`;
+    try {
+      const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
+      console.log("request params", {
+        model,
+        shirt,
+        body: req.body,
+      });
+      const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
 
-    const bash = shell.exec(
-      `scripts/runPSAction.sh -f ${resultFileName} -s ${shirt.imageUrl}`
-    );
-    console.log({ bash });
-    console.log("PS Action Triggered");
+      const bash = shell.exec(
+        `scripts/runTriggerMerchMadnessAction.sh -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
+      );
 
-    // TODO do we need to store it also in the database?
-    res.json({ resultUrl: `uploads/${resultFileName}` });
+      const [newCombined] = await db
+        .insert(combinedImages)
+        .values({
+          modelId: model.id,
+          shirtId: shirt.id,
+          imageUrl: `/uploads/${resultFileName}`,
+        })
+        .returning();
 
-    // const [newCombined] = await db
-    //   .insert(combinedImages)
-    //   .values({
-    //     modelId,
-    //     shirtId,
-    //     resultUrl,
-    //   })
-    //   .returning();
+      res.json(newCombined);
+    } catch (error) {
+      console.error("Error creating combined image:", error);
+      res.status(500).send("Error creating combined image");
+    }
+  });
 
-    // res.json(newCombined);
+  app.delete("/api/combined/:id", async (req, res) => {
+    try {
+      // Get the combined image to find the image path
+      const [combined] = await db
+        .select()
+        .from(combinedImages)
+        .where(eq(combinedImages.id, parseInt(req.params.id)))
+        .limit(1);
+
+      if (!combined) {
+        return res.status(404).send("Combined image not found");
+      }
+
+      // Delete the physical file
+      const filePath = join(
+        __dirname,
+        "..",
+        "public",
+        combined.imageUrl.replace(/^\/uploads\//, "")
+      );
+      try {
+        await fs.promises.unlink(filePath);
+      } catch (err) {
+        console.error("Error deleting file:", err);
+        // Continue even if file deletion fails
+      }
+
+      // Delete from database
+      await db
+        .delete(combinedImages)
+        .where(eq(combinedImages.id, parseInt(req.params.id)));
+
+      res.json({ message: "Combined image deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting combined image:", error);
+      res.status(500).send("Error deleting combined image");
+    }
   });
 
   // Users API

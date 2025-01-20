@@ -21,6 +21,7 @@ export const models = pgTable("models", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
+  documentUrl: text("document_url"),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -39,7 +40,7 @@ export const combinedImages = pgTable("combined_images", {
   id: serial("id").primaryKey(),
   modelId: serial("model_id").references(() => models.id),
   shirtId: serial("shirt_id").references(() => shirts.id),
-  resultUrl: text("result_url").notNull(),
+  imageUrl: text("image_url").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

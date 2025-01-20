@@ -1,0 +1,57 @@
+import { queryClient } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "./use-toast";
+
+const useModels = () => {
+  const uploadModelDocument = useMutation({
+    mutationFn: async ({
+      formData,
+      name,
+      onClose,
+    }: {
+      formData: FormData;
+      name: string;
+      onClose: () => void;
+    }) => {
+      const form = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === "image" && value instanceof File) {
+          form.append("image", value);
+        } else {
+          form.append(key, String(value));
+        }
+      });
+      form.append("name", name ?? "");
+
+      const response = await fetch(`/api/models`, {
+        method: "POST",
+        body: form,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      return response.json();
+    },
+    onSuccess: (_, { onClose }) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/models`] });
+      toast({
+        title: "Success",
+        description: `Model uploaded successfully`,
+      });
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
+  return { uploadModelDocument };
+};
+
+export default useModels;

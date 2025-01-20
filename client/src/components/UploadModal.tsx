@@ -7,9 +7,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useModels from "@/hooks/useModels";
+import useShirts from "@/hooks/useShirts";
 import { useEffect, useRef, useState } from "react";
+import ClipLoader from "react-spinners/ClipLoader";
 import DropdownFilter from "./filter/DropdownFilter";
 import {
   ModelEvent,
@@ -56,8 +57,8 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
   // TODO Replace with a useRef hook as we do not need to rerender the view when the input changes!!!!
   // Can be accessed with ref.current.value!
   const [formData, setFormData] = useState<ModelData | ShirtData>({});
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { uploadModelDocument } = useModels();
+  const { uploadShirt } = useShirts();
 
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -83,50 +84,19 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
     }
   }, []);
 
-  const uploadMutation = useMutation({
-    mutationFn: async () => {
-      const form = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === "image" && value instanceof File) {
-          form.append("image", value);
-        } else {
-          form.append(key, String(value));
-        }
-      });
-      form.append("name", nameRef?.current?.value ?? "");
-
-      const response = await fetch(`/api/${type}s`, {
-        method: "POST",
-        body: form,
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/${type}s`] });
-      toast({
-        title: "Success",
-        description: `${type} uploaded successfully`,
-      });
-      onClose();
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    },
-  });
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    uploadMutation.mutate();
+    type === "model"
+      ? uploadModelDocument.mutateAsync({
+          formData,
+          name: nameRef.current?.value ?? "",
+          onClose,
+        })
+      : uploadShirt.mutateAsync({
+          formData,
+          name: nameRef.current?.value ?? "",
+          onClose,
+        });
   };
 
   return (
@@ -251,7 +221,6 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                   setFormData({ ...formData, image: file });
                 }
               }}
-              accept="image/*"
               required
             />
           </div>
@@ -260,8 +229,20 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={uploadMutation.isPending}>
-              {uploadMutation.isPending ? "Uploading..." : "Upload"}
+            <Button
+              type="submit"
+              disabled={uploadModelDocument.isPending || uploadShirt.isPending}
+            >
+              {uploadModelDocument.isPending || uploadShirt.isPending ? (
+                <ClipLoader
+                  loading={
+                    uploadModelDocument.isPending || uploadShirt.isPending
+                  }
+                  color="black"
+                />
+              ) : (
+                "Upload"
+              )}
             </Button>
           </div>
         </form>
