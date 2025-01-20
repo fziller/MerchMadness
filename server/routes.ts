@@ -5,7 +5,9 @@ import type { Express } from "express";
 import express from "express";
 import fs from "fs";
 import { createServer, type Server } from "http";
+import { nanoid } from "nanoid";
 import { dirname, join } from "path";
+import shell from "shelljs";
 import { fileURLToPath } from "url";
 import { setupAuth } from "./auth";
 
@@ -16,6 +18,7 @@ const __dirname = dirname(__filename);
 // Ensure uploads directory exists
 const publicDir = join(__dirname, "..", "public");
 const uploadsDir = join(publicDir, "uploads");
+
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -189,17 +192,39 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/combined", async (req, res) => {
     const { modelId, shirtId, resultUrl } = req.body;
+    console.log("request params", {
+      modelId,
+      shirtId,
+      resultUrl,
+      body: req.body,
+    });
+    const resultFileName = `result_${modelId}_${shirtId}_${nanoid(8)}.jpg`;
+    shell.exec(`scripts/runPSAction.sh -f ${resultFileName}`);
+    let file;
+    for (let i = 0; i < 10; i++) {
+      try {
+        console.log(i);
+        // We need to wait for the result to be properly finished.
+        file = fs.readFileSync(join(uploadsDir, resultFileName));
+        break;
+      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
+    console.log("PS Action Triggered");
 
-    const [newCombined] = await db
-      .insert(combinedImages)
-      .values({
-        modelId,
-        shirtId,
-        resultUrl,
-      })
-      .returning();
+    res.json({ resultUrl: `uploads/${resultFileName}` });
 
-    res.json(newCombined);
+    // const [newCombined] = await db
+    //   .insert(combinedImages)
+    //   .values({
+    //     modelId,
+    //     shirtId,
+    //     resultUrl,
+    //   })
+    //   .returning();
+
+    // res.json(newCombined);
   });
 
   // Users API

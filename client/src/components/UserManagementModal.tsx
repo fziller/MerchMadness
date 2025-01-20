@@ -49,13 +49,6 @@ export default function UserManagementModal({
       userId: number;
       payload: User;
     }) => {
-      console.log("mutation", { userId, payload });
-      const form = new FormData();
-
-      Object.entries(payload).forEach(([key, value]) => {
-        form.append(key, value);
-      });
-
       const response = await fetch(`/api/users/${userId}`, {
         method: "POST",
         body: JSON.stringify(payload),

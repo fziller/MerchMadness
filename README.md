@@ -29,7 +29,7 @@ npm install
    Create a `.env` file in the root directory with the following variables:
 
 ```env
-DATABASE_URL=postgresql://fziller@localhost:5432/merchmadness
+DATABASE_URL=postgresql://${USER}@localhost:5432/merchmadness
 ```
 
 3.1 Install Postgres
@@ -56,7 +56,7 @@ INSERT INTO users(id, username, password, is_admin, created_at) VALUES (12345, '
 5. Start the development server:
 
 ```bash
-npm run dev
+ DATABASE_URL=postgresql://${USER}:@localhost:5432/merchmadness npm run dev
 ```
 
 The application will be available at `http://localhost:12345`

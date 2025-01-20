@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import useCombination from "@/hooks/useCombination";
 import type { CombinedImage, Model, Shirt } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
 import JSZip from "jszip";
@@ -17,6 +18,8 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
     enabled: !!models && !!shirts,
   });
 
+  const { postCombination } = useCombination();
+
   const [images, setImages] = useState<{ resultUrl: string }[]>([]);
 
   const handleDownload = (imageUrl: string) => {
@@ -28,14 +31,24 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
     document.body.removeChild(link);
   };
 
+  console.log("ResultArea", { images });
+
   // TODO This one needs to handle the combination, which is the photoshop script part.
   const handleCombine = async () => {
+    const result = await postCombination.mutateAsync({
+      modelId: "123",
+      shirtId: "456",
+      onSuccess: (resultUrl) => {
+        setImages([{ resultUrl }]);
+      },
+    });
+    console.log({ result });
     // alert(
     //   `Combining model images ${models
     //     ?.map((m) => m.name)
     //     .join(", ")} with shirts ${shirts?.map((s) => s.name).join(", ")}...`
     // );
-    setImages([]);
+    // setImages([]);
     //
   };
 
