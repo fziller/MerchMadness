@@ -1,39 +1,24 @@
 # !/bin/bash
-# In order to trigger a photoshop automation, we need to do the following:
-
-# 1. We need to have the proper automation in place (*.atn)
-# 2. We need to have the script that will execute the automation in place (*.jsx)
-# 3. *.jsx needs to be copied into the photoshop presets/scripts folder
-# 4. *.atn needs to be copied into the photoshop presets/actions folder
-# 5. The basic model file needs to be opened (*.psb)
-# 6. The shirt image needs to be copied into the tray
-# 7. The automation will be triggered
-# 8. We need to export the resulting image somehow.
 
 ###############
 # Prequisites # 
 ###############
 
-while getopts f:s: flag
+while getopts f:m: flag
 do
     case "${flag}" in
         f) RESULT_FILE_NAME=${OPTARG};;
-        s) SHIRT_FILE=${OPTARG};;
+        m) MODEL_DOCUMENT=${OPTARG};;
     esac
 done
 
 # Define variables to make the script more flexible
-# ACTION_FILE="${PWD}/photoshop/Impericon_T-shirt_Woman.atn"
-ACTION_FILE="${PWD}/photoshop/Impericon_T-shirt_Woman.atn"
-SHIRT_FILE="${PWD}/public${SHIRT_FILE}" # SHIRT_FILE already has a leading slash
-MODEL_FILE="${PWD}/model/T-shirt_Women_Model.psb"
-LAYER_NAME="T-shirt_women"
-ACTION_NAME="Impericon_T-shirt_Woman"
+MODEL_FILE="${PWD}/public${MODEL_DOCUMENT}"
 RESULT_FILE_PATH="${PWD}/public/uploads/${RESULT_FILE_NAME}"
+SCRIPT_FILE="${PWD}/scripts/getImageFromPSFile.jsx"
 PS_APP="Adobe Photoshop 2025"
-SCRIPT_FILE="triggerMerchMadnessAction.jsx"
 
-echo "SHIRT_FILE: ${SHIRT_FILE}"
+echo "MODEL_FILE: ${MODEL_FILE}"
 echo "RESULT_FILE_PATH: ${RESULT_FILE_PATH}"
 
 
@@ -46,22 +31,18 @@ fi
 
 # PS needs some time to properly close
 echo "Sleeping until PS is closed"
-sleep 5
+sleep 3
 
 
 #############
 # Execution #
 #############
 
-echo "Triggering script with parameters: ACTION_FILE=${ACTION_FILE} SHIRT_FILE=${SHIRT_FILE} MODEL_FILE=${MODEL_FILE} LAYER_NAME=${LAYER_NAME} ACTION_NAME=${ACTION_NAME} RESULT_FILE_PATH=${RESULT_FILE_PATH} open -a "${PS_APP}" --args -r '${PWD}/scripts/${SCRIPT_FILE}'"
+echo "Triggering script with parameters: MODEL_FILE=${MODEL_FILE} RESULT_FILE_PATH=${RESULT_FILE_PATH} open -a "${PS_APP}" --args -r ${SCRIPT_FILE}"
 
-ACTION_FILE=${ACTION_FILE} \
-SHIRT_FILE=${SHIRT_FILE} \
 MODEL_FILE=${MODEL_FILE} \
-LAYER_NAME=${LAYER_NAME} \
-ACTION_NAME=${ACTION_NAME} \
 RESULT_FILE_PATH=${RESULT_FILE_PATH} \
-open -a "${PS_APP}" --args -r "${PWD}/scripts/${SCRIPT_FILE}"
+open -a "${PS_APP}" --args -r ${SCRIPT_FILE}
 
 # We try to find the file for 30 seconds. If it can not be found by then, something went wrong.
 for((index = 0; index <= 15; index++)); do
