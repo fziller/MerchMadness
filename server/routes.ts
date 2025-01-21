@@ -266,14 +266,10 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Delete the physical file
-      const filePath = join(
-        __dirname,
-        "..",
-        "public",
-        combined.imageUrl.replace(/^\/uploads\//, "")
-      );
       try {
-        await fs.promises.unlink(filePath);
+        await fs.promises.unlink(
+          join(__dirname, "..", "public", combined.imageUrl)
+        );
       } catch (err) {
         console.error("Error deleting file:", err);
         // Continue even if file deletion fails
