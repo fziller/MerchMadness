@@ -119,17 +119,19 @@ export function registerRoutes(app: Express): Server {
         "public",
         model.imageUrl.replace(/^\/uploads\//, "")
       );
-      console.log(
-        "Deleting model file",
-        filePath,
-        join(__dirname, "..", "public", model.imageUrl)
-      );
       try {
-        await fs.promises.unlink(filePath);
+        await fs.promises.unlink(
+          join(__dirname, "..", "public", model.imageUrl)
+        );
       } catch (err) {
         console.error("Error deleting file:", err);
         // Continue even if file deletion fails
       }
+
+      // Delete any image from combined image database
+      await db
+        .delete(combinedImages)
+        .where(eq(combinedImages.modelId, parseInt(req.params.id)));
 
       // Delete from database
       await db.delete(models).where(eq(models.id, parseInt(req.params.id)));

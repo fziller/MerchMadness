@@ -25,31 +25,33 @@ done
 
 # Define variables to make the script more flexible
 # ACTION_FILE="${PWD}/photoshop/Impericon_T-shirt_Woman.atn"
-ACTION_FILE="${PWD}/photoshop/MerchMadness.atn"
+
+ACTION_NAME="Impericon_T-shirt_Woman"
+# ACTION_NAME="Impericon_HAUPTatn"
+ACTION_FILE="${PWD}/photoshop/${ACTION_NAME}.atn"
 SHIRT_FILE="${PWD}/public${SHIRT_FILE}" # SHIRT_FILE already has a leading slash
 MODEL_FILE="${PWD}/public${MODEL_DOCUMENT}"
-LAYER_NAME="Tshirt"
-ACTION_NAME="Impericon_T-shirt_Woman"
+LAYER_NAME="T-shirt_women"
 RESULT_FILE_PATH="${PWD}/public/uploads/${RESULT_FILE_NAME}"
 PS_APP="Adobe Photoshop 2025"
 SCRIPT_FILE="${PWD}/scripts/triggerMerchMadnessAction.jsx"
 
 
 # TODO This is a workoTshirt
-if [[ ${MODEL_FILE} == "*T_shirt_man*" ]]; then
-    echo "Man T-shirt"
-    LAYER_NAME="Tshirt"
-fi
-if [[ ${MODEL_FILE} == "*T_shirt_Woman_Model*" ]]; then
-    echo "Woman T-shirt"
-    LAYER_NAME="T-shirt_women"
-fi
-if [[ ${MODEL_FILE} == "*Longsleeve-man*" ]]; then
-    echo "Longsleeve T-shirt"
-    LAYER_NAME="Longsleeve"
-fi
+# if [[ ${MODEL_FILE} == "*T_shirt_man*" ]]; then
+#     echo "Man T-shirt"
+#     LAYER_NAME="Tshirt"
+# fi
+# if [[ ${MODEL_FILE} == "*T_shirt_Woman_Model*" ]]; then
+#     echo "Woman T-shirt"
+#     LAYER_NAME="T-shirt_women"
+# fi
+# if [[ ${MODEL_FILE} == "*Longsleeve-man*" ]]; then
+#     echo "Longsleeve T-shirt"
+#     LAYER_NAME="Longsleeve"
+# fi
 
-# Unless we find a better way of executing the action, we need to close Photoshop beforehand.
+# # Unless we find a better way of executing the action, we need to close Photoshop beforehand.
 PS_ID=$(ps -ax | grep "Photoshop" | head -1 | awk '{print $1;}')
 if [[ ! -z ${PS_ID} ]]; then
   echo "Found running photoshop instance on PID ${PS_ID}. Will kill it ..."
@@ -65,7 +67,7 @@ sleep 5
 # Execution #
 #############
 
-echo "Triggering script with parameters: ACTION_FILE=${ACTION_FILE} SHIRT_FILE=${SHIRT_FILE} MODEL_FILE=${MODEL_FILE} LAYER_NAME=${LAYER_NAME} ACTION_NAME=${ACTION_NAME} RESULT_FILE_PATH=${RESULT_FILE_PATH} open -a "${PS_APP}" --args -r '${PWD}/scripts/${SCRIPT_FILE}'"
+echo "Triggering script with parameters: ACTION_FILE=${ACTION_FILE} SHIRT_FILE=${SHIRT_FILE} MODEL_FILE=${MODEL_FILE} LAYER_NAME=${LAYER_NAME} ACTION_NAME=${ACTION_NAME} RESULT_FILE_PATH=${RESULT_FILE_PATH}"
 
 ACTION_FILE=${ACTION_FILE} \
 SHIRT_FILE=${SHIRT_FILE} \
@@ -75,10 +77,24 @@ ACTION_NAME=${ACTION_NAME} \
 RESULT_FILE_PATH=${RESULT_FILE_PATH} \
 open -a "${PS_APP}" --args -r ${SCRIPT_FILE}
 
-# We try to find the file for 30 seconds. If it can not be found by then, something went wrong.
-for((index = 0; index <= 15; index++)); do
+# osascript - "$ACTION_FILE" <<EOF
+# tell application "Adobe Photoshop 2025"
+#     activate
+#     do javascript of file \"${SCRIPT_FILE}\"
+# end tell
+# EOF
+# osascript -e 'tell application "Adobe Photoshop 2025"' -e 'system attribute ACTION_FILE' -e 'activate' -e 'do javascript of file "${SCRIPT_FILE}"' -e 'end tell' # Faster execution when already running. 
+# In case this is running on linux, we need to find a different command.
+
+
+
+
+
+
+# We try to find the file for 10 seconds. If it can not be found by then, something went wrong.
+for((index = 0; index <= 5; index++)); do
     if [[ ! -f ${RESULT_FILE_PATH} ]]; then
-        echo "Could not find result file. Sleeping for 5 seconds"
+        echo "Could not find result file. Sleeping for 2 seconds"
         sleep 2
     else
         # If we successfully could find the result file, we want to return with success.
