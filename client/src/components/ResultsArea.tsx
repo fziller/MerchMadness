@@ -37,9 +37,12 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
     shirts &&
       models &&
       shirts.map(async (shirt) => {
-        postCombination.mutateAsync({
-          model: models?.[0],
-          shirt,
+        models.map(async (model) => {
+          const resultUrl = await postCombination.mutateAsync({
+            model,
+            shirt,
+          });
+          setImages((prev) => [...prev, { resultUrl }]);
         });
       });
   };

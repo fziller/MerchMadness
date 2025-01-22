@@ -189,15 +189,15 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).send("Shirt not found");
       }
 
+      await db
+        .delete(combinedImages)
+        .where(eq(combinedImages.shirtId, parseInt(req.params.id)));
+
       // Delete the physical file
-      const filePath = join(
-        __dirname,
-        "..",
-        "public",
-        shirt.imageUrl.replace(/^\/uploads\//, "")
-      );
       try {
-        await fs.promises.unlink(filePath);
+        await fs.promises.unlink(
+          join(__dirname, "..", "public", shirt.imageUrl)
+        );
       } catch (err) {
         console.error("Error deleting file:", err);
         // Continue even if file deletion fails

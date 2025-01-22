@@ -2,15 +2,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/hooks/use-user";
 import { ModelState } from "@/hooks/useModelFilter";
+import useModels from "@/hooks/useModels";
 import { filterByType } from "@/lib/utils";
 import type { Model } from "@db/schema";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { SlidersHorizontal, Trash2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
+import ContentCard from "./ContentCard";
 import ImageViewModal from "./ImageViewModal";
 import { MetaData } from "./filter/FilterEnums";
 
@@ -28,10 +28,8 @@ export default function ModelSelection({
   onRemoveFilterFromSelection,
 }: ModelSelectionProps) {
   const [selectedImage, setSelectedImage] = useState<Model | null>(null);
-  const { toast } = useToast();
-  const { user } = useUser();
-  const queryClient = useQueryClient();
   const [changeFilterValue, setChangeFilterValue] = useState(false);
+  const { deleteModel } = useModels();
 
   const { data: models } = useQuery<Model[]>({
     queryKey: ["/api/models"],
@@ -61,33 +59,6 @@ export default function ModelSelection({
       onSelectedModelsChange(modelsAfterChange);
     }
   }, [models, modelFilters, changeFilterValue, selectedModels]);
-
-  const deleteMutation = useMutation({
-    mutationFn: async (modelId: number) => {
-      const response = await fetch(`/api/models/${modelId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/models"] });
-      toast({
-        title: "Success",
-        description: "Model deleted successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    },
-  });
 
   return (
     <Card>
@@ -149,106 +120,32 @@ export default function ModelSelection({
                     metadata={selectedImage.metadata as MetaData}
                     onClose={() => setSelectedImage(null)}
                     onDelete={() => {
-                      deleteMutation.mutate(selectedImage.id);
+                      deleteModel.mutate(selectedImage.id);
                       setSelectedImage(null);
                     }}
                   />
                 );
               }
               return (
-                <div
-                  key={model.id}
-                  className={`relative cursor-pointer rounded-lg overflow-hidden border-2 group p-2 ${
-                    selectedModels.includes(model.imageUrl)
-                      ? "border-primary"
-                      : "border-transparent"
-                  }`}
-                >
-                  <div
-                    className="relative"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedImage(model);
-                    }}
-                  >
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="absolute top-1 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (selectedModels.includes(model.imageUrl)) {
-                          setSelectedModels(
-                            selectedModels.filter((id) => id !== model.imageUrl)
-                          );
-                        } else {
-                          setSelectedModels([
-                            ...selectedModels,
-                            model.imageUrl,
-                          ]);
-                        }
-                      }}
-                    >
-                      <Checkbox
-                        id={`model-${model.id}-2`}
-                        checked={selectedModels.includes(model.imageUrl)}
-                        onCheckedChange={() => {
-                          if (selectedModels.includes(model.imageUrl)) {
-                            setSelectedModels(
-                              selectedModels.filter(
-                                (id) => id !== model.imageUrl
-                              )
-                            );
-                          } else {
-                            setSelectedModels([
-                              ...selectedModels,
-                              model.imageUrl,
-                            ]);
-                          }
-                        }}
-                      />
-                    </Button>
-                    {model.imageUrl ? (
-                      <img
-                        src={
-                          model.imageUrl.startsWith("/uploads")
-                            ? model.imageUrl
-                            : `/uploads/${model.imageUrl}`
-                        }
-                        alt={model.name}
-                        className="w-full h-64 object-contain bg-white"
-                        onClick={() => setSelectedImage(model)}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                        <p>No Image</p>
-                      </div>
-                    )}
-
-                    {
-                      // Only admins should be allowed to delete models
-                      (user?.isAdmin || user?.username === "admin") && (
-                        <Button
-                          variant="secondary"
-                          size="icon"
-                          className="absolute top-1 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (
-                              window.confirm(
-                                "Are you sure you want to delete this model?"
-                              )
-                            ) {
-                              deleteMutation.mutate(model.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                <ContentCard
+                  content={model}
+                  selectedContent={selectedModels}
+                  setSelectedContent={setSelectedModels}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImage(model);
+                  }}
+                  onDeleteClick={(e) => {
+                    e.stopPropagation();
+                    if (
+                      window.confirm(
+                        "Are you sure you want to delete this model?"
                       )
+                    ) {
+                      deleteModel.mutate(model.id);
                     }
-                  </div>
-                </div>
+                  }}
+                />
               );
             })}
           </div>
@@ -267,7 +164,7 @@ export default function ModelSelection({
               if (
                 window.confirm("Are you sure you want to delete this shirt?")
               ) {
-                deleteMutation.mutate(selectedImage.id);
+                deleteModel.mutate(selectedImage.id);
                 setSelectedImage(null);
               }
             }}

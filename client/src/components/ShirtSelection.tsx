@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useUser } from "@/hooks/use-user";
 import { ShirtState } from "@/hooks/useShirtFilter";
 import useShirts from "@/hooks/useShirts";
 import { filterByType } from "@/lib/utils";
 import type { Shirt } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
-import { SlidersHorizontal, Trash2 } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
+import ContentCard from "./ContentCard";
 import ImageViewModal from "./ImageViewModal";
 import { MetaData } from "./filter/FilterEnums";
 import { Checkbox } from "./ui/checkbox";
@@ -30,7 +30,6 @@ export default function ShirtSelection({
   const { data: shirts } = useQuery<Shirt[]>({
     queryKey: ["/api/shirts"],
   });
-  const { user } = useUser();
   const { deleteSingleShirt } = useShirts();
 
   const [changeFilterValue, setChangeFilterValue] = useState(false);
@@ -125,88 +124,25 @@ export default function ShirtSelection({
                     </div>
                   ))
               : filteredShirts.map((shirt) => (
-                  <div
-                    key={shirt.id}
-                    className={`relative cursor-pointer rounded-lg overflow-hidden border-2 p-2 group ${
-                      selectedShirts.includes(shirt.imageUrl)
-                        ? "border-primary"
-                        : "border-transparent"
-                    }`}
-                  >
-                    <div className="relative">
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-1 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (selectedShirts.includes(shirt.imageUrl)) {
-                            setSelectedShirts(
-                              selectedShirts.filter(
-                                (id) => id !== shirt.imageUrl
-                              )
-                            );
-                          } else {
-                            setSelectedShirts([
-                              ...selectedShirts,
-                              shirt.imageUrl,
-                            ]);
-                          }
-                        }}
-                      >
-                        <Checkbox
-                          id={`shirt-${shirt.id}-2`}
-                          checked={selectedShirts.includes(shirt.imageUrl)}
-                          onCheckedChange={() => {
-                            if (selectedShirts.includes(shirt.imageUrl)) {
-                              setSelectedShirts(
-                                selectedShirts.filter(
-                                  (id) => id !== shirt.imageUrl
-                                )
-                              );
-                            } else {
-                              setSelectedShirts([
-                                ...selectedShirts,
-                                shirt.imageUrl,
-                              ]);
-                            }
-                          }}
-                        />
-                      </Button>
-                      <img
-                        src={
-                          shirt.imageUrl.startsWith("/uploads")
-                            ? shirt.imageUrl
-                            : `/uploads/${shirt.imageUrl}`
-                        }
-                        alt={shirt.name}
-                        className="w-full h-64 object-contain bg-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedImage(shirt);
-                        }}
-                      />
-                      {(user?.isAdmin || user?.username === "admin") && (
-                        <Button
-                          variant="secondary"
-                          size="icon"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (
-                              window.confirm(
-                                "Are you sure you want to delete this shirt?"
-                              )
-                            ) {
-                              deleteSingleShirt.mutate(shirt.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                  <ContentCard
+                    content={shirt}
+                    selectedContent={selectedShirts}
+                    setSelectedContent={setSelectedShirts}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedImage(shirt);
+                    }}
+                    onDeleteClick={(e) => {
+                      e.stopPropagation();
+                      if (
+                        window.confirm(
+                          "Are you sure you want to delete this shirt?"
+                        )
+                      ) {
+                        deleteSingleShirt.mutate(shirt.id);
+                      }
+                    }}
+                  />
                 ))}
 
             {selectedImage && (

@@ -51,7 +51,34 @@ const useModels = () => {
       });
     },
   });
-  return { uploadModelDocument };
+
+  const deleteModel = useMutation({
+    mutationFn: async (modelId: number) => {
+      const response = await fetch(`/api/models/${modelId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/models"] });
+      toast({
+        title: "Success",
+        description: "Model deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
+  return { uploadModelDocument, deleteModel };
 };
 
 export default useModels;
