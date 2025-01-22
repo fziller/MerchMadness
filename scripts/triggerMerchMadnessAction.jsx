@@ -12,13 +12,13 @@ try {
   app.load(File("/Users/fziller/git/MerchMadness/photoshop/Impericon_T-shirt_Woman.atn"));
   debugStep = 2;
   // Copy the image into the clipboard
-  var shirtImage = File("/Users/fziller/git/MerchMadness/public/uploads/shirt_1737452515047_T_Shirt_Women_Motiv3.webp");
+  var shirtImage = File("/Users/fziller/git/MerchMadness/public/uploads/shirt_1737534294102_T_shirt_gro__esMotiv_3.webp");
   app.open(shirtImage);
   app.activeDocument.selection.selectAll();
   app.activeDocument.selection.copy();
 
   debugStep = 3;
-  var modelFile = File("/Users/fziller/git/MerchMadness/public/uploads/model_doc_1737452463061_T_shirt_Women_Model.psb");
+  var modelFile = File("/Users/fziller/git/MerchMadness/public/uploads/model_doc_1737473410644_Longsleeve_man.psd");
   open(modelFile);
 
   // We need to switch to the correct layer so that the automation can actually handle it.
@@ -42,7 +42,7 @@ try {
 
   debugStep = 7;
   // // Save the file to jpg after action is successful
-  var file = new File("/Users/fziller/git/MerchMadness/public/uploads/result_1_1_DoDwpbAr.jpg");
+  var file = new File("/Users/fziller/git/MerchMadness/public/uploads/result_2_3_xso6gOi_.jpg");
   var options = new JPEGSaveOptions();
   options.quality = 12; // Maximalqualität (1-12)
   options.embedColorProfile = true;

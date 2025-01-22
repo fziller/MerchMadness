@@ -37,8 +37,6 @@ export default function ModelSelection({
   const [filteredModels, setFilteredModels] = useState<Model[]>(models || []);
   const [selectedModels, setSelectedModels] = useState<string[]>([]); // Stores the ids of the selected models
 
-  console.log("selectedModels", { selectedModels, filteredModels });
-
   // Effect to show the updated list of models in the modelselection as well as changing the selected models.
   useEffect(() => {
     const modelsAfterChange = models

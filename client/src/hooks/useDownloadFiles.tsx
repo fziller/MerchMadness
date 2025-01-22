@@ -12,9 +12,8 @@ const useDownloadFiles = () => {
       await fetch(images[image].resultUrl)
         .then(async (response) => {
           const ab = response.arrayBuffer();
-          const id = images[image].resultUrl.split["_"];
           // TODO File extension needs to be changed (configurable?)
-          imagesFolder.file(`${id[id.length - 1]}`, ab);
+          imagesFolder.file(`${image}.jpg`, ab);
         })
         .catch((error) => {
           console.log("Fetch images", error);

@@ -24,13 +24,6 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
 
   const [images, setImages] = useState<{ resultUrl: string }[]>([]);
 
-  console.log("ResultArea", { models, shirts, images, combinedImages });
-  console.log(
-    combinedImages?.map((combined) => {
-      combined.imageUrl;
-    })
-  );
-
   // TODO The image view is not properly rerendered if we have more than one image.
   // Ideally, it will show one picture after another, but it waits until the full badge is finished.
   const handleCombine = async () => {
@@ -59,7 +52,13 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
           </Button>
           <Button
             variant="outline"
-            onClick={async () => await zipAndDownload(images)}
+            onClick={async () =>
+              await zipAndDownload(
+                combinedImages?.map((image) => {
+                  return { resultUrl: image.imageUrl };
+                }) || []
+              )
+            }
           >
             Download All
           </Button>
@@ -115,7 +114,17 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
                 </Button>
               </div>
             ))}
-            <ClipLoader loading={postCombination.isPending} color="blue" />
+            {postCombination.isPending && (
+              <div className="cursor-pointer rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/50 aspect-square flex items-center justify-center bg-muted/50 relative group">
+                <span className="text-sm text-muted-foreground justify-center items-center flex flex-col">
+                  <ClipLoader
+                    loading={postCombination.isPending}
+                    color="blue"
+                  />
+                  <div className="items-center mt-2">Creating image ...</div>
+                </span>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

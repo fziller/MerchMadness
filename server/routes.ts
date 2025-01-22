@@ -37,7 +37,6 @@ const upload = multer({
   storage: multer.diskStorage({
     destination: uploadsDir,
     filename: (req, file, cb) => {
-      console.log({ req, file });
       // Clean the original filename and add timestamp
       const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, "_");
       cb(
@@ -225,11 +224,6 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/combined", async (req, res) => {
     try {
       const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
-      console.log("request params", {
-        model,
-        shirt,
-        body: req.body,
-      });
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
 
       shell.exec(

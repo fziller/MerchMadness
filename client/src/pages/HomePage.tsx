@@ -66,8 +66,6 @@ export default function HomePage() {
     }
   };
 
-  console.log({ shirtState });
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b p-4 flex justify-between items-center">
@@ -198,7 +196,6 @@ export default function HomePage() {
                         key: TagShirtBrand.key,
                         selectedOption: shirtState.brand,
                         onSelectOption: (option) => {
-                          console.log("Triggering onSelect");
                           shirtDispatch({
                             type: ShirtActionType.SET_BRAND,
                             payload: option,
