@@ -6,14 +6,14 @@ var debugStep = 1;
 
 try {
   // Load automation
-  var modelFile = File($.getenv("MODEL_FILE"));
+  var modelFile = File("/Users/fziller/git/MerchMadness/public/uploads/model_doc_1737532042046_T_shirt_man.psd");
   open(modelFile);
 
   // We need to switch to the correct layer so that the automation can actually handle it.
   debugStep = 2;
 
   // // Save the file to jpg after action is successful
-  var file = new File($.getenv("RESULT_FILE_PATH"));
+  var file = new File("/Users/fziller/git/MerchMadness/public/uploads/model_img_-NoyshS4.jpg");
   var options = new JPEGSaveOptions();
   options.quality = 12; // Maximalqualität (1-12)
   options.embedColorProfile = true;

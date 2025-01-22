@@ -9,16 +9,16 @@ try {
     app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
   }
   // Load automation
-  app.load(File("/Users/fziller/git/MerchMadness/photoshop/Impericon_T-shirt_Woman.atn"));
+  app.load(File($.getenv("ACTION_FILE")));
   debugStep = 2;
   // Copy the image into the clipboard
-  var shirtImage = File("/Users/fziller/git/MerchMadness/public/uploads/shirt_1737452515047_T_Shirt_Women_Motiv3.webp");
+  var shirtImage = File($.getenv("SHIRT_FILE"));
   app.open(shirtImage);
   app.activeDocument.selection.selectAll();
   app.activeDocument.selection.copy();
 
   debugStep = 3;
-  var modelFile = File("/Users/fziller/git/MerchMadness/public/uploads/model_doc_1737452463061_T_shirt_Women_Model.psb");
+  var modelFile = File($.getenv("MODEL_FILE"));
   open(modelFile);
 
   // We need to switch to the correct layer so that the automation can actually handle it.
@@ -34,7 +34,7 @@ try {
   // 1st param is name of action, second is set of actions.
   // TODO i18n can make this one complicated
   debugStep = 5;
-  app.doAction("Impericon_T-shirt_Woman", "Standardaktionen");
+  app.doAction($.getenv("ACTION_NAME"), "Standardaktionen");
 
   debugStep = 6;
   // Navigate back to modelfile
@@ -42,7 +42,7 @@ try {
 
   debugStep = 7;
   // // Save the file to jpg after action is successful
-  var file = new File("/Users/fziller/git/MerchMadness/public/uploads/result_1_1_DoDwpbAr.jpg");
+  var file = new File($.getenv("RESULT_FILE_PATH"));
   var options = new JPEGSaveOptions();
   options.quality = 12; // Maximalqualität (1-12)
   options.embedColorProfile = true;

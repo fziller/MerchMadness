@@ -51,45 +51,96 @@ SCRIPT_FILE="${PWD}/scripts/triggerMerchMadnessAction.jsx"
 #     LAYER_NAME="Longsleeve"
 # fi
 
-# # Unless we find a better way of executing the action, we need to close Photoshop beforehand.
-PS_ID=$(ps -ax | grep "Photoshop" | head -1 | awk '{print $1;}')
-if [[ ! -z ${PS_ID} ]]; then
-  echo "Found running photoshop instance on PID ${PS_ID}. Will kill it ..."
-  kill ${PS_ID} 2> /dev/null  # Kill any photoshop instance, if it is running.
-fi
+# No need to wait for Photoshop to be closed and opened before.
+# PS_ID=$(ps -ax | grep "Photoshop" | head -1 | awk '{print $1;}')
+# if [[ ! -z ${PS_ID} ]]; then
+#   echo "Found running photoshop instance on PID ${PS_ID}. Will kill it ..."
+#   kill ${PS_ID} 2> /dev/null  # Kill any photoshop instance, if it is running.
+# fi
 
-# PS needs some time to properly close
-echo "Sleeping until PS is closed"
-sleep 5
+# # PS needs some time to properly close
+# echo "Sleeping until PS is closed"
+# sleep 5
 
 
 #############
 # Execution #
 #############
+# Old way of executing the action.
+# ACTION_FILE=${ACTION_FILE} \
+# SHIRT_FILE=${SHIRT_FILE} \
+# MODEL_FILE=${MODEL_FILE} \
+# LAYER_NAME=${LAYER_NAME} \
+# ACTION_NAME=${ACTION_NAME} \
+# RESULT_FILE_PATH=${RESULT_FILE_PATH} \
+# open -a "${PS_APP}" --args -r ${SCRIPT_FILE}
 
-echo "Triggering script with parameters: ACTION_FILE=${ACTION_FILE} SHIRT_FILE=${SHIRT_FILE} MODEL_FILE=${MODEL_FILE} LAYER_NAME=${LAYER_NAME} ACTION_NAME=${ACTION_NAME} RESULT_FILE_PATH=${RESULT_FILE_PATH}"
+# Creates or overrides a script with given variables to execute fast and directly.
+cat > ${SCRIPT_FILE} <<EOF
+// #target photoshop
 
-ACTION_FILE=${ACTION_FILE} \
-SHIRT_FILE=${SHIRT_FILE} \
-MODEL_FILE=${MODEL_FILE} \
-LAYER_NAME=${LAYER_NAME} \
-ACTION_NAME=${ACTION_NAME} \
-RESULT_FILE_PATH=${RESULT_FILE_PATH} \
-open -a "${PS_APP}" --args -r ${SCRIPT_FILE}
+// Open the model file which was copied before
 
-# osascript - "$ACTION_FILE" <<EOF
-# tell application "Adobe Photoshop 2025"
-#     activate
-#     do javascript of file \"${SCRIPT_FILE}\"
-# end tell
-# EOF
-# osascript -e 'tell application "Adobe Photoshop 2025"' -e 'system attribute ACTION_FILE' -e 'activate' -e 'do javascript of file "${SCRIPT_FILE}"' -e 'end tell' # Faster execution when already running. 
-# In case this is running on linux, we need to find a different command.
+var debugStep = 1;
 
+try {
+  while (app.documents.length > 0) {
+    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+  }
+  // Load automation
+  app.load(File("${ACTION_FILE}"));
+  debugStep = 2;
+  // Copy the image into the clipboard
+  var shirtImage = File("${SHIRT_FILE}");
+  app.open(shirtImage);
+  app.activeDocument.selection.selectAll();
+  app.activeDocument.selection.copy();
 
+  debugStep = 3;
+  var modelFile = File("${MODEL_FILE}");
+  open(modelFile);
 
+  // We need to switch to the correct layer so that the automation can actually handle it.
+  debugStep = 4;
+  // var layers = app.activeDocument.artLayers;
+  // for (var i = 0; i < layers.length; i++) {
+  //   if (layers[i].name === $.getenv("LAYER_NAME")) {
+  //     app.activeDocument.activeLayer = layers[i];
+  //     break;
+  //   }
+  // }
 
+  // 1st param is name of action, second is set of actions.
+  // TODO i18n can make this one complicated
+  debugStep = 5;
+  app.doAction("${ACTION_NAME}", "Standardaktionen");
 
+  debugStep = 6;
+  // Navigate back to modelfile
+  open(modelFile);
+
+  debugStep = 7;
+  // // Save the file to jpg after action is successful
+  var file = new File("${RESULT_FILE_PATH}");
+  var options = new JPEGSaveOptions();
+  options.quality = 12; // Maximalqualität (1-12)
+  options.embedColorProfile = true;
+  options.formatOptions = FormatOptions.OPTIMIZEDBASELINE;
+
+  debugStep = 8;
+  app.activeDocument.saveAs(file, options, true, Extension.LOWERCASE);
+} catch (e) {
+  alert("Error on step " + debugStep + ": " + e.message);
+}
+EOF
+
+# Execute via Applescript. // TODO in case we run on another environment, we need to find a better way.
+osascript <<EOF
+tell application "${PS_APP}"
+    activate
+    do javascript of file "${SCRIPT_FILE}"
+end tell
+EOF
 
 # We try to find the file for 10 seconds. If it can not be found by then, something went wrong.
 for((index = 0; index <= 5; index++)); do
@@ -104,7 +155,3 @@ done
 
 # If we could not find the file in time, we want return error
 exit 1
-
-# TODO 
-# Find a way how we can execute the script without closing and reopening photoshop
-# Script should find photoshop instance itself

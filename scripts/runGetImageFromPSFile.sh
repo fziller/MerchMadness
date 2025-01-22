@@ -21,28 +21,45 @@ PS_APP="Adobe Photoshop 2025"
 echo "MODEL_FILE: ${MODEL_FILE}"
 echo "RESULT_FILE_PATH: ${RESULT_FILE_PATH}"
 
-
-# Unless we find a better way of executing the action, we need to close Photoshop beforehand.
-PS_ID=$(ps -ax | grep "Photoshop" | head -1 | awk '{print $1;}')
-if [[ ! -z ${PS_ID} ]]; then
-  echo "Found running photoshop instance on PID ${PS_ID}. Will kill it ..."
-  kill ${PS_ID} 2> /dev/null  # Kill any photoshop instance, if it is running.
-fi
-
-# PS needs some time to properly close
-echo "Sleeping until PS is closed"
-sleep 3
-
-
 #############
 # Execution #
 #############
 
-echo "Triggering script with parameters: MODEL_FILE=${MODEL_FILE} RESULT_FILE_PATH=${RESULT_FILE_PATH} open -a "${PS_APP}" --args -r ${SCRIPT_FILE}"
+cat > ${SCRIPT_FILE} <<EOF
+// #target photoshop
 
-MODEL_FILE=${MODEL_FILE} \
-RESULT_FILE_PATH=${RESULT_FILE_PATH} \
-open -a "${PS_APP}" --args -r ${SCRIPT_FILE}
+// Open the model file which was copied before
+
+var debugStep = 1;
+
+try {
+  // Load automation
+  var modelFile = File("${MODEL_FILE}");
+  open(modelFile);
+
+  // We need to switch to the correct layer so that the automation can actually handle it.
+  debugStep = 2;
+
+  // // Save the file to jpg after action is successful
+  var file = new File("${RESULT_FILE_PATH}");
+  var options = new JPEGSaveOptions();
+  options.quality = 12; // Maximalqualität (1-12)
+  options.embedColorProfile = true;
+  options.formatOptions = FormatOptions.OPTIMIZEDBASELINE;
+
+  debugStep = 8;
+  app.activeDocument.saveAs(file, options, true, Extension.LOWERCASE);
+} catch (e) {
+  alert("Error on step " + debugStep + ": " + e.message);
+}
+EOF
+
+osascript <<EOF
+tell application "${PS_APP}"
+    activate
+    do javascript of file "${SCRIPT_FILE}"
+end tell
+EOF
 
 # We try to find the file for 30 seconds. If it can not be found by then, something went wrong.
 for((index = 0; index <= 15; index++)); do
