@@ -68,8 +68,6 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).send("No image file uploaded");
       }
 
-      console.log("Our body when uploading models", { body: req.body });
-
       const documentUrl = `/uploads/${req.file.filename}`;
       const resultFileName = `model_img_${nanoid(8)}.jpg`;
 
@@ -77,8 +75,6 @@ export function registerRoutes(app: Express): Server {
       const bash = shell.exec(
         `scripts/runGetImageFromPSFile.sh -f ${resultFileName} -m ${documentUrl}`
       );
-
-      console.log("Upload model document", { bash });
 
       const imageUrl = `/uploads/${resultFileName}`;
       const metadata = { ...req.body, name: undefined, image_url: undefined };
@@ -112,16 +108,20 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).send("Model not found");
       }
 
-      // Delete the physical file
-      const filePath = join(
-        __dirname,
-        "..",
-        "public",
-        model.imageUrl.replace(/^\/uploads\//, "")
-      );
+      // Delete the image file
       try {
         await fs.promises.unlink(
           join(__dirname, "..", "public", model.imageUrl)
+        );
+      } catch (err) {
+        console.error("Error deleting file:", err);
+        // Continue even if file deletion fails
+      }
+
+      // Delete the document file file
+      try {
+        await fs.promises.unlink(
+          join(__dirname, "..", "public", model.documentUrl)
         );
       } catch (err) {
         console.error("Error deleting file:", err);
@@ -232,7 +232,7 @@ export function registerRoutes(app: Express): Server {
       });
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
 
-      const bash = shell.exec(
+      shell.exec(
         `scripts/runTriggerMerchMadnessAction.sh -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
       );
 

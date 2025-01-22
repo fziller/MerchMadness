@@ -21,7 +21,7 @@ export const models = pgTable("models", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
-  documentUrl: text("document_url"),
+  documentUrl: text("document_url").notNull(),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
