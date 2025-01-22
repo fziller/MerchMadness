@@ -128,6 +128,7 @@ export default function ModelSelection({
               }
               return (
                 <ContentCard
+                  key={model.imageUrl}
                   content={model}
                   selectedContent={selectedModels}
                   setSelectedContent={setSelectedModels}

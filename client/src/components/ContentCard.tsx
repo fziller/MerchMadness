@@ -50,15 +50,7 @@ const ContentCard: React.FC<ContentCardProps> = (props) => {
           <Checkbox
             id={`model-${content.id}-2`}
             checked={selectedContent.includes(content.imageUrl)}
-            onCheckedChange={() => {
-              if (selectedContent.includes(content.imageUrl)) {
-                setSelectedContent(
-                  selectedContent.filter((id) => id !== content.imageUrl)
-                );
-              } else {
-                setSelectedContent((prev) => [...prev, content.imageUrl]);
-              }
-            }}
+            onCheckedChange={() => {}}
           />
         </Button>
         {content.imageUrl ? (
