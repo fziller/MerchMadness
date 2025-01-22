@@ -26,8 +26,8 @@ done
 # Define variables to make the script more flexible
 # ACTION_FILE="${PWD}/photoshop/Impericon_T-shirt_Woman.atn"
 
-ACTION_NAME="Impericon_T-shirt_Woman"
-# ACTION_NAME="Impericon_HAUPTatn"
+# ACTION_NAME="Impericon_T-shirt_Woman"
+ACTION_NAME="Impericon_HAUPTatn"
 ACTION_FILE="${PWD}/photoshop/${ACTION_NAME}.atn"
 SHIRT_FILE="${PWD}/public${SHIRT_FILE}" # SHIRT_FILE already has a leading slash
 MODEL_FILE="${PWD}/public${MODEL_DOCUMENT}"
