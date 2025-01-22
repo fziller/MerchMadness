@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import useCombination from "@/hooks/useCombination";
 import useDownloadFiles from "@/hooks/useDownloadFiles";
 import type { CombinedImage, Model, Shirt } from "@db/schema";
-import { useQuery } from "@tanstack/react-query";
+import { useMutationState, useQuery } from "@tanstack/react-query";
 import { Download, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 
 type ResultsAreaProps = {
@@ -19,25 +19,59 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
     enabled: !!models && !!shirts,
   });
 
+  const [combinations, setCombinations] = useState<
+    {
+      model: Model;
+      shirt: Shirt;
+    }[]
+  >([]);
+
   const { postCombination, deleteCombination } = useCombination();
   const { zipAndDownload, downloadFile } = useDownloadFiles();
 
-  const [images, setImages] = useState<{ resultUrl: string }[]>([]);
+  console.log("ResultArea", { combinedImages });
+
+  const data = useMutationState({
+    select(mutation) {
+      return mutation.state;
+    },
+  });
+
+  useEffect(() => {
+    const combineImages = async ({
+      model,
+      shirt,
+    }: {
+      model: Model;
+      shirt: Shirt;
+    }) => {
+      await postCombination.mutateAsync({
+        model,
+        shirt,
+      });
+    };
+    if (!combinations.length) return;
+    combineImages(combinations[0]).then(() => {
+      setCombinations((prev) => prev.slice(1));
+    });
+  }, [combinations]);
 
   // TODO The image view is not properly rerendered if we have more than one image.
   // Ideally, it will show one picture after another, but it waits until the full badge is finished.
   const handleCombine = async () => {
+    const combs: { model: Model; shirt: Shirt }[] = [];
     shirts &&
       models &&
       shirts.map(async (shirt) => {
         models.map(async (model) => {
-          const resultUrl = await postCombination.mutateAsync({
+          combs.push({
             model,
             shirt,
           });
-          setImages((prev) => [...prev, { resultUrl }]);
         });
       });
+    console.log({ combs });
+    setCombinations(combs);
   };
 
   return (
@@ -65,10 +99,12 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
           <Button
             variant="outline"
             onClick={() => {
-              setImages([]);
+              combinedImages?.map((combined) =>
+                deleteCombination.mutate({ id: combined.id.toString() })
+              );
             }}
           >
-            Clear
+            {"Clear (" + combinedImages?.length + ")"}
           </Button>
         </div>
       </CardHeader>
@@ -115,7 +151,7 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
               </div>
             ))}
             {postCombination.isPending && (
-              <div className="cursor-pointer rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/50 aspect-square flex items-center justify-center bg-muted/50 relative group">
+              <div className="h-auto cursor-pointer rounded-lg overflow-hidden border-2 border-dashed border-muted-foreground/50 aspect-square flex items-center justify-center bg-muted/50 relative group">
                 <span className="text-sm text-muted-foreground justify-center items-center flex flex-col">
                   <ClipLoader
                     loading={postCombination.isPending}

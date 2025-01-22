@@ -12,7 +12,7 @@ try {
   app.load(File("/Users/fziller/git/MerchMadness/photoshop/Impericon_T-shirt_Woman.atn"));
   debugStep = 2;
   // Copy the image into the clipboard
-  var shirtImage = File("/Users/fziller/git/MerchMadness/public/uploads/shirt_1737534294102_T_shirt_gro__esMotiv_3.webp");
+  var shirtImage = File("/Users/fziller/git/MerchMadness/public/uploads/shirt_1737535484624_T_Shirt_Women_Motiv4.webp");
   app.open(shirtImage);
   app.activeDocument.selection.selectAll();
   app.activeDocument.selection.copy();
@@ -42,7 +42,7 @@ try {
 
   debugStep = 7;
   // // Save the file to jpg after action is successful
-  var file = new File("/Users/fziller/git/MerchMadness/public/uploads/result_2_3_xso6gOi_.jpg");
+  var file = new File("/Users/fziller/git/MerchMadness/public/uploads/result_2_4_la4m3CJn.jpg");
   var options = new JPEGSaveOptions();
   options.quality = 12; // Maximalqualität (1-12)
   options.embedColorProfile = true;

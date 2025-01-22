@@ -5,5 +5,4 @@ server/public
 vite.config.ts.*
 *.tar.gz
 public/
-scripts/triggerMerchMadnessAction.jsx
-scripts/getImageFromPSFilejsx
+scripts/*.jsx

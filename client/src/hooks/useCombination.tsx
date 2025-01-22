@@ -26,7 +26,10 @@ const useCombination = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/combined"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/combined"],
+        refetchType: "all",
+      });
       toast({
         title: "Combination deleted successfully!",
         description: "",
