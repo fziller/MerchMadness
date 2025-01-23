@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import useCombination from "@/hooks/useCombination";
 import useDownloadFiles from "@/hooks/useDownloadFiles";
 import type { CombinedImage, Model, Shirt } from "@db/schema";
-import { useMutationState, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Download, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
+import ImageViewModal from "./ImageViewModal";
 
 type ResultsAreaProps = {
   models: Model[] | null;
@@ -28,14 +29,7 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
 
   const { postCombination, deleteCombination } = useCombination();
   const { zipAndDownload, downloadFile } = useDownloadFiles();
-
-  console.log("ResultArea", { combinedImages });
-
-  const data = useMutationState({
-    select(mutation) {
-      return mutation.state;
-    },
-  });
+  const [selectedImage, setSelectedImage] = useState<CombinedImage | null>();
 
   useEffect(() => {
     const combineImages = async ({
@@ -56,8 +50,6 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
     });
   }, [combinations]);
 
-  // TODO The image view is not properly rerendered if we have more than one image.
-  // Ideally, it will show one picture after another, but it waits until the full badge is finished.
   const handleCombine = async () => {
     const combs: { model: Model; shirt: Shirt }[] = [];
     shirts &&
@@ -70,7 +62,6 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
           });
         });
       });
-    console.log({ combs });
     setCombinations(combs);
   };
 
@@ -79,13 +70,17 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Results</CardTitle>
         <div className="flex gap-2">
-          <Button onClick={async () => await handleCombine()}>
+          <Button
+            onClick={async () => await handleCombine()}
+            disabled={combinations.length > 0}
+          >
             {"Combine (" +
               Number(shirts?.length) * Number(models?.length) +
               ")"}
           </Button>
           <Button
             variant="outline"
+            disabled={combinedImages?.length === 0}
             onClick={async () =>
               await zipAndDownload(
                 combinedImages?.map((image) => {
@@ -129,6 +124,10 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
                   src={combined.imageUrl}
                   alt="Combined result"
                   className="w-full h-auto rounded-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedImage(combined);
+                  }}
                 />
 
                 <Button
@@ -160,6 +159,29 @@ export default function ResultsArea({ models, shirts }: ResultsAreaProps) {
                   <div className="items-center mt-2">Creating image ...</div>
                 </span>
               </div>
+            )}
+            {selectedImage && (
+              <ImageViewModal
+                imageUrl={
+                  selectedImage.imageUrl.startsWith("/uploads")
+                    ? selectedImage.imageUrl
+                    : `/uploads/${selectedImage.imageUrl}`
+                }
+                title={selectedImage.id.toString()}
+                onClose={() => setSelectedImage(null)}
+                onDelete={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to delete this combination?"
+                    )
+                  ) {
+                    deleteCombination.mutate({
+                      id: selectedImage.id.toString(),
+                    });
+                    setSelectedImage(null);
+                  }
+                }}
+              />
             )}
           </div>
         )}

@@ -13,7 +13,7 @@ import { MetaData } from "./filter/FilterEnums";
 type ImageViewModalProps = {
   imageUrl: string;
   title: string;
-  metadata: MetaData;
+  metadata?: MetaData;
   onClose: () => void;
   onDelete: () => void;
 };
