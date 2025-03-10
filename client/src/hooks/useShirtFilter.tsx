@@ -4,6 +4,7 @@ export enum ShirtActionType {
   SET_SIZE = "SET_SIZE",
   SET_COLOR = "SET_COLOR",
   SET_BRAND = "SET_BRAND",
+  SET_MOTIV = "SET_MOTIV",
   RESET = "RESET",
 }
 
@@ -11,6 +12,7 @@ export interface ShirtState {
   size: string[];
   color: string[];
   brand: string;
+  motiv: string;
 }
 
 export interface ShirtAction {
@@ -23,6 +25,7 @@ export const useShirtFilter = () => {
     size: [],
     color: [],
     brand: "",
+    motiv: "",
   };
 
   const shirtReducer = (state: ShirtState, action: ShirtAction) => {
@@ -41,6 +44,11 @@ export const useShirtFilter = () => {
         return {
           ...state,
           brand: action.payload as string,
+        };
+      case ShirtActionType.SET_MOTIV:
+        return {
+          ...state,
+          motiv: action.payload as string,
         };
       case ShirtActionType.RESET:
         return initialState;

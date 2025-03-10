@@ -106,7 +106,7 @@ export default function ShirtSelection({
           </Button>
         </div>
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[600px]">
           <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
             {!filteredShirts || filteredShirts.length === 0
               ? Array(6)

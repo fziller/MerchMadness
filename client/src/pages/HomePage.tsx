@@ -2,6 +2,7 @@ import {
   ModelEvent,
   ModelGender,
   ModelGenre,
+  ShirtMotiv,
   TagModelHeight,
   TagModelWidth,
   TagShirtBrand,
@@ -201,6 +202,19 @@ export default function HomePage() {
                             payload: option,
                           });
                         },
+                      },
+                    ],
+                    singleSelect: [
+                      {
+                        label: "Motiv",
+                        options: Object.values(ShirtMotiv),
+                        key: "motiv",
+                        onSelectOption: (option) =>
+                          shirtDispatch({
+                            type: ShirtActionType.SET_MOTIV,
+                            payload: option,
+                          }),
+                        selectedOption: shirtState.motiv,
                       },
                     ],
                   }}

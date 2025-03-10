@@ -11,6 +11,12 @@ export enum ModelGender {
   FEMALE = "Female",
 }
 
+export enum ShirtMotiv {
+  LARGE = "Large",
+  SMALL = "Small",
+  HEART = "Heart",
+}
+
 export enum ModelEvent {
   CHRISTMAS = "Christmas",
   HALLOWEEN = "Halloween",
@@ -28,6 +34,13 @@ type SelectTag = {
   type: "singleSelect" | "multiSelect" | "dropdown";
   options: any[];
   key: string;
+};
+
+export const TagShirtMotiv: SelectTag = {
+  label: "Motiv",
+  type: "singleSelect",
+  options: [ShirtMotiv.LARGE, ShirtMotiv.SMALL, ShirtMotiv.HEART],
+  key: "motiv",
 };
 
 export const TagModelGender: SelectTag = {

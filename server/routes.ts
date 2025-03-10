@@ -225,9 +225,23 @@ export function registerRoutes(app: Express): Server {
     try {
       const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
+      let foundMotiv = null;
+
+      const motiv = String(shirt.metadata?.motiv ?? "");
+      console.log("Motiv", motiv);
+      // We want to trigger automations depending on the shirt color.
+      if (motiv.includes("Large")) {
+        foundMotiv = "haupt_atn_großes_motiv";
+      } else if (motiv.includes("Small")) {
+        foundMotiv = "haupt_atn_kleines_motiv";
+      } else if (motiv.includes("Heart")) {
+        foundMotiv = "haupt_atn_herz_motiv";
+      }
 
       shell.exec(
-        `scripts/runTriggerMerchMadnessAction.sh -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
+        `scripts/runTriggerMerchMadnessAction.sh ${
+          foundMotiv && `-c ${foundMotiv}`
+        } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
       );
 
       const [newCombined] = await db

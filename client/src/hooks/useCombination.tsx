@@ -54,6 +54,8 @@ const useCombination = () => {
         },
       });
 
+      console.log("Response", response, !response.ok);
+
       if (!response.ok) {
         throw new Error(await response.text());
       }

@@ -16,6 +16,7 @@ import {
   ModelEvent,
   ModelGender,
   ModelGenre,
+  ShirtMotiv,
   TagModelEvent,
   TagModelGender,
   TagModelGenre,
@@ -23,6 +24,7 @@ import {
   TagModelWidth,
   TagShirtBrand,
   TagShirtColor,
+  TagShirtMotiv,
   TagShirtSize,
 } from "./filter/FilterEnums";
 import MultiSelectFilter from "./filter/MultiSelectFilter";
@@ -51,6 +53,7 @@ type ShirtData = {
   size: string[];
   color: string[];
   brand: string;
+  motiv: ShirtMotiv | undefined;
 };
 
 export default function UploadModal({ type, onClose }: UploadModalProps) {
@@ -207,6 +210,19 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                   setFormData({ ...formData, brand: value });
                 }}
                 label={TagShirtBrand.label}
+              />
+              {/* TODO Temporary filter for showcase different shirt merges */}
+              <SingleSelectFilter
+                key={TagShirtMotiv.key}
+                selectedOption={formData.motiv}
+                options={TagShirtMotiv.options}
+                onSelectOption={(value) => {
+                  setFormData({
+                    ...formData,
+                    motiv: value.toString() as ModelGender,
+                  });
+                }}
+                label={TagShirtMotiv.label}
               />
             </>
           )}

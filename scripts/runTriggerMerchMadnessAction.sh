@@ -14,9 +14,10 @@
 # Prequisites # 
 ###############
 
-while getopts f:m:s: flag
+while getopts c:f:m:s: flag
 do
     case "${flag}" in
+        c) MOTIV=${OPTARG};;
         f) RESULT_FILE_NAME=${OPTARG};;
         m) MODEL_DOCUMENT=${OPTARG};;
         s) SHIRT_FILE=${OPTARG};;
@@ -26,12 +27,13 @@ done
 # Define variables to make the script more flexible
 # ACTION_FILE="${PWD}/photoshop/Impericon_T-shirt_Woman.atn"
 
-# ACTION_NAME="Impericon_T-shirt_Woman"
-ACTION_NAME="Impericon_HAUPTatn"
+# ACTION_NAME="Impericon_HAUPTatn"
+# ACTION_NAME="haupt_atn_großes_motiv"
+ACTION_NAME="${MOTIV}"
 ACTION_FILE="${PWD}/photoshop/${ACTION_NAME}.atn"
 SHIRT_FILE="${PWD}/public${SHIRT_FILE}" # SHIRT_FILE already has a leading slash
 MODEL_FILE="${PWD}/public${MODEL_DOCUMENT}"
-LAYER_NAME="T-shirt_women"
+LAYER_NAME="Longsleeve"
 RESULT_FILE_PATH="${PWD}/public/uploads/${RESULT_FILE_NAME}"
 PS_APP="Adobe Photoshop 2025"
 SCRIPT_FILE="${PWD}/scripts/triggerMerchMadnessAction.jsx"
@@ -79,7 +81,20 @@ SCRIPT_FILE="${PWD}/scripts/triggerMerchMadnessAction.jsx"
 cat > ${SCRIPT_FILE} <<EOF
 // #target photoshop
 
-// Open the model file which was copied before
+// Magic function coming up to delete already created actions and cleaning up
+function deleteActions(setName) {
+  var ref = new ActionReference();
+  ref.putName(stringIDToTypeID("actionSet"), setName);
+
+  var desc = new ActionDescriptor();
+  desc.putReference(stringIDToTypeID("null"), ref);
+
+  try {
+    executeAction(stringIDToTypeID("delete"), desc, DialogModes.NO);
+  } catch (e) {
+    alert("Fehler: " + e);
+  }
+}
 
 var debugStep = 1;
 
@@ -102,13 +117,13 @@ try {
 
   // We need to switch to the correct layer so that the automation can actually handle it.
   debugStep = 4;
-  // var layers = app.activeDocument.artLayers;
-  // for (var i = 0; i < layers.length; i++) {
-  //   if (layers[i].name === $.getenv("LAYER_NAME")) {
-  //     app.activeDocument.activeLayer = layers[i];
-  //     break;
-  //   }
-  // }
+  var layers = app.activeDocument.artLayers;
+  for (var i = 0; i < layers.length; i++) {
+    if (layers[i].name === $.getenv("LAYER_NAME")) {
+      app.activeDocument.activeLayer = layers[i];
+      break;
+    }
+  }
 
   // 1st param is name of action, second is set of actions.
   // TODO i18n can make this one complicated
@@ -129,8 +144,18 @@ try {
 
   debugStep = 8;
   app.activeDocument.saveAs(file, options, true, Extension.LOWERCASE);
+
+
+  //while (app.documents.length > 0) {
+  //  app.documents[0].close(SaveOptions.DONOTSAVECHANGES);
+  //}  
+  // var idquit = charIDToTypeID( "quit" );
+  // executeAction( idquit, undefined, DialogModes.ALL );
 } catch (e) {
-  alert("Error on step " + debugStep + ": " + e.message);
+  // alert("Error on step " + debugStep + ": " + e.message);
+  // app.ActiveDocument.Close(SaveOptions.DONOTSAVECHANGES)
+} finally {
+  deleteActions("Standardaktionen");
 }
 EOF
 
