@@ -225,7 +225,8 @@ export function registerRoutes(app: Express): Server {
     try {
       const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
-      let foundMotiv = null;
+      let foundMotiv,
+        foundColor = null;
 
       const motiv = String(shirt.metadata?.motiv ?? "");
       console.log("Motiv", motiv);
@@ -233,14 +234,21 @@ export function registerRoutes(app: Express): Server {
       if (motiv.includes("Large")) {
         foundMotiv = "haupt_atn_großes_motiv";
       } else if (motiv.includes("Small")) {
-        foundMotiv = "haupt_atn_kleines_motiv";
+        foundMotiv = "haupt_atn_brust_motiv";
       } else if (motiv.includes("Heart")) {
         foundMotiv = "haupt_atn_herz_motiv";
       }
 
+      console.log("metadata", shirt.metadata);
+      const color = String(shirt.metadata?.color ?? "");
+      if (color.includes("White")) {
+        foundColor = "white";
+      } else if (color.includes("Orange")) {
+        foundColor = "orange";
+      } // else case - no color found, we keep it as null
       shell.exec(
         `scripts/runTriggerMerchMadnessAction.sh ${
-          foundMotiv && `-c ${foundMotiv}`
+          foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`
         } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
       );
 

@@ -91,5 +91,26 @@ The application will be available at `http://localhost:12345`
 
 ## Some memos
 
-- We need to make sure that the automation is not actively saving data to make sure the basic model data stays the same.
-- Make sure the automation really is only one automation and not a list of these.
+## About Photoshop autmations
+
+### Requirements
+
+- The model file needs to have a specific layer for the smart object, which is called 'Smart-Objekt'.
+- The first step of the automation (right after opening the model) needs to be to navigate to the 'Smart-Object' layer.
+- Photoshop needs to be available on the machine where the app is running.
+
+### Troubleshooting
+
+#### The command 'play' is not currently available.
+
+This issue can have multiple problems:
+
+- After opening the model file, the automation needs to access to layer 'Smart-Objekt'. If the automation
+  does not provide this as a first step, it needs to be added. This can be done via recording a step and adding it
+  into the automation. Make sure this is happening.
+- It can happen, that the same automation is available multiple times and it will access an older version. Makes sure to
+  delete all available automations before triggering another run with an automation.
+
+#### The result looks bad using the app, but good when automation runs manually.
+
+- Make sure the automation is not saving the model file. It needs to be clean when starting the automation.
