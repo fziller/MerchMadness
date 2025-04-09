@@ -29,7 +29,7 @@ const useShirts = () => {
     }: {
       formData: FormData;
       name: string;
-      onClose: () => void;
+      onClose?: () => void;
     }) => {
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
@@ -59,7 +59,7 @@ const useShirts = () => {
         title: "Success",
         description: `Shirt uploaded successfully`,
       });
-      onClose();
+      onClose?.();
     },
     onError: (error: Error) => {
       toast({

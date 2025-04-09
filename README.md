@@ -35,6 +35,7 @@ DATABASE_URL=postgresql://${USER}@localhost:5432/merchmadness
 3.1 Install Postgres
 
 - via Brew or via installer
+  `brew install postgresql`
   psql -U your_username -d postgres
   CREATE DATABASE merchmadness;
 

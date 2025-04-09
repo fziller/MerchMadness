@@ -151,9 +151,12 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/shirts", upload.single("image"), async (req, res) => {
     try {
       const { name } = req.body;
+      console.log("Triggering upload of image", name);
       if (!req.file) {
         return res.status(400).send("No image file uploaded");
       }
+
+      console.log("Triggering upload of image", req.file);
 
       const imageUrl = `/uploads/${req.file.filename}`;
 

@@ -1,8 +1,9 @@
-import { Switch, Route, useLocation } from "wouter";
 import { useUser } from "@/hooks/use-user";
 import { Loader2 } from "lucide-react";
+import { Route, Switch, useLocation } from "wouter";
 import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
+import WizardPage from "./pages/WizardPage";
 
 function App() {
   const { user, isLoading } = useUser();
@@ -32,7 +33,11 @@ function App() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
-      <Route path="/" component={HomePage} />
+      {user?.isAdmin ? (
+        <Route path="/" component={HomePage} />
+      ) : (
+        <Route path="/" component={WizardPage} />
+      )}
       <Route>
         {/* 404 fallback */}
         <div className="min-h-screen w-full flex items-center justify-center bg-background">

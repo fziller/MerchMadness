@@ -65,8 +65,6 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
 
   const nameRef = useRef<HTMLInputElement>(null);
 
-  console.log("formData for upload", { formData });
-
   useEffect(() => {
     if (type === "model") {
       setFormData({

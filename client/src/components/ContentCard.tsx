@@ -22,6 +22,8 @@ const ContentCard: React.FC<ContentCardProps> = (props) => {
   } = props;
   const { user } = useUser();
 
+  console.log("selectedContent", { selectedContent, content });
+
   return (
     <div
       key={content.id}

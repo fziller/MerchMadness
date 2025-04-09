@@ -13,16 +13,17 @@ export type DropdownFilterProps = {
   onSelectOption: (option: any) => void;
   key: string;
   label: string;
+  showLabel?: boolean;
 };
 
 export default function DropdownFilter(props: DropdownFilterProps) {
   const [selectedValue, setSelectedValue] = useState<string | undefined>(
-    undefined
+    props.selectedOption
   );
 
   return (
     <div className="space-y-2">
-      <h3 className="font-bold">{props.label}</h3>
+      {props.showLabel && <h3 className="font-bold">{props.label}</h3>}
       <div className="">
         <Select
           onValueChange={(value) => {
