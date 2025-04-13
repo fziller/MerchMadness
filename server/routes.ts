@@ -226,13 +226,29 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/combined", async (req, res) => {
     try {
-      const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
+      const {
+        model,
+        shirt,
+        color,
+        motiv,
+      }: { model: Model; shirt: Shirt; color: string; motiv: string } =
+        req.body;
+      console.log(
+        "Start to combine model and shirt: ",
+        model,
+        shirt,
+        color,
+        motiv
+      );
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
       let foundMotiv,
         foundColor = null;
 
-      const motiv = String(shirt.metadata?.motiv ?? "");
-      console.log("Motiv", motiv);
+      // In order to trigger a front- or a back automation, we need to check the filename.
+      const isFront = shirt.imageUrl.includes("front");
+      const isBack = shirt.imageUrl.includes("back");
+      // const motiv = String(shirt.metadata?.motiv ?? {});
+      console.log("Motiv", motiv, isFront, isBack);
       // We want to trigger automations depending on the shirt color.
       if (motiv.includes("Large")) {
         foundMotiv = "haupt_atn_großes_motiv";
@@ -243,12 +259,21 @@ export function registerRoutes(app: Express): Server {
       }
 
       console.log("metadata", shirt.metadata);
-      const color = String(shirt.metadata?.color ?? "");
+      // const color = String(shirt.metadata?.color ?? {});
       if (color.includes("White")) {
         foundColor = "white";
       } else if (color.includes("Orange")) {
         foundColor = "orange";
       } // else case - no color found, we keep it as null
+
+      /* Script execution */
+      // We need to add front- or back automation
+      console.log(
+        "Triggering script with ",
+        `scripts/runTriggerMerchMadnessAction.sh ${
+          foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`
+        } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
+      );
       shell.exec(
         `scripts/runTriggerMerchMadnessAction.sh ${
           foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`

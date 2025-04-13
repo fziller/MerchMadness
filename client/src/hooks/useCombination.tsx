@@ -6,6 +6,8 @@ import { toast } from "./use-toast";
 interface PostCombinationMutationProps {
   model: Model;
   shirt: Shirt;
+  color?: string;
+  motiv?: string;
   onSuccess?: (resultUrl: string) => void;
 }
 
@@ -44,10 +46,15 @@ const useCombination = () => {
   });
 
   const postCombination = useMutation({
-    mutationFn: async ({ model, shirt }: PostCombinationMutationProps) => {
+    mutationFn: async ({
+      model,
+      shirt,
+      color,
+      motiv,
+    }: PostCombinationMutationProps) => {
       const response = await fetch(`/api/combined`, {
         method: "POST",
-        body: JSON.stringify({ model, shirt }),
+        body: JSON.stringify({ model, shirt, color, motiv }),
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
