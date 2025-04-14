@@ -24,6 +24,7 @@ export const models = pgTable("models", {
   imageUrl: text("image_url").notNull(),
   documentUrl: text("document_url").notNull(),
   automationUrl: text("automation_url"),
+  color: text("color").notNull(),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

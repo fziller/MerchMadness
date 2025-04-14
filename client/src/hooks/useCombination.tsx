@@ -7,7 +7,6 @@ interface PostCombinationMutationProps {
   model: Model;
   shirt: Shirt;
   color?: string;
-  motiv?: string;
   onSuccess?: (resultUrl: string) => void;
 }
 
@@ -50,18 +49,15 @@ const useCombination = () => {
       model,
       shirt,
       color,
-      motiv,
     }: PostCombinationMutationProps) => {
       const response = await fetch(`/api/combined`, {
         method: "POST",
-        body: JSON.stringify({ model, shirt, color, motiv }),
+        body: JSON.stringify({ model, shirt, color }),
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
       });
-
-      console.log("Response", response, !response.ok);
 
       if (!response.ok) {
         throw new Error(await response.text());

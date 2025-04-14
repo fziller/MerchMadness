@@ -7,7 +7,7 @@ import useModels from "@/hooks/useModels";
 import { filterByType } from "@/lib/utils";
 import type { Model } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
 import ContentCard from "./ContentCard";
@@ -64,7 +64,7 @@ export default function ModelSelection({
         <CardTitle>Select Model</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center gap-5">
           <Button
             variant="outline"
             size="sm"
@@ -85,7 +85,7 @@ export default function ModelSelection({
             Select All
           </Button>
           <Button
-            variant="outline"
+            variant="destructive"
             size="sm"
             className="flex items-center gap-2"
             onClick={() =>
@@ -96,7 +96,8 @@ export default function ModelSelection({
               )
             }
           >
-            Delete All
+            <Trash size={20} />
+            <span>Delete All</span>
           </Button>
           <div className="space-y-4 ml-4 w-full">
             <ActiveFilters

@@ -14,11 +14,10 @@
 # Prequisites # 
 ###############
 
-while getopts a:c:f:m:n:s: flag
+while getopts a:f:m:n:s: flag
 do
     case "${flag}" in
         a) ACTION=${OPTARG};;
-        c) MOTIV=${OPTARG};;
         f) RESULT_FILE_NAME=${OPTARG};;
         m) MODEL_DOCUMENT=${OPTARG};;
         n) ACTION_NAME=${OPTARG};;
@@ -29,11 +28,6 @@ done
 # Define variables to make the script more flexible
 # ACTION_FILE="${PWD}/photoshop/Impericon_T-shirt_Woman.atn"
 
-# ACTION_NAME="Impericon_HAUPTatn"
-# ACTION_NAME="haupt_atn_großes_motiv"
-
-# ACTION_NAME="${MOTIV}"
-# ACTION_FILE="${PWD}/photoshop/${ACTION_NAME}.atn"
 echo "Our action file: ${ACTION}"
 ACTION_FILE="${PWD}/public${ACTION}"
 SHIRT_FILE="${PWD}/public${SHIRT_FILE}" # SHIRT_FILE already has a leading slash
@@ -44,44 +38,9 @@ PS_APP="Adobe Photoshop 2025"
 SCRIPT_FILE="${PWD}/scripts/triggerMerchMadnessAction.jsx"
 
 
-# TODO This is a workoTshirt
-# if [[ ${MODEL_FILE} == "*T_shirt_man*" ]]; then
-#     echo "Man T-shirt"
-#     LAYER_NAME="Tshirt"
-# fi
-# if [[ ${MODEL_FILE} == "*T_shirt_Woman_Model*" ]]; then
-#     echo "Woman T-shirt"
-#     LAYER_NAME="T-shirt_women"
-# fi
-# if [[ ${MODEL_FILE} == "*Longsleeve-man*" ]]; then
-#     echo "Longsleeve T-shirt"
-#     LAYER_NAME="Longsleeve"
-# fi
-
-# No need to wait for Photoshop to be closed and opened before.
-# PS_ID=$(ps -ax | grep "Photoshop" | head -1 | awk '{print $1;}')
-# if [[ ! -z ${PS_ID} ]]; then
-#   echo "Found running photoshop instance on PID ${PS_ID}. Will kill it ..."
-#   kill ${PS_ID} 2> /dev/null  # Kill any photoshop instance, if it is running.
-# fi
-
-# # PS needs some time to properly close
-# echo "Sleeping until PS is closed"
-# sleep 5
-
-
 #############
 # Execution #
 #############
-# Old way of executing the action.
-# ACTION_FILE=${ACTION_FILE} \
-# SHIRT_FILE=${SHIRT_FILE} \
-# MODEL_FILE=${MODEL_FILE} \
-# LAYER_NAME=${LAYER_NAME} \
-# ACTION_NAME=${ACTION_NAME} \
-# RESULT_FILE_PATH=${RESULT_FILE_PATH} \
-# open -a "${PS_APP}" --args -r ${SCRIPT_FILE}
-
 # Creates or overrides a script with given variables to execute fast and directly.
 cat > ${SCRIPT_FILE} <<EOF
 // #target photoshop

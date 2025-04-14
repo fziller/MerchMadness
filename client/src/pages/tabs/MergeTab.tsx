@@ -1,90 +1,127 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
 import useCombination from "@/hooks/useCombination";
 import useDownloadFiles from "@/hooks/useDownloadFiles";
 import { CombinedImage, Model, Shirt } from "@db/schema";
-import { useQuery } from "@tanstack/react-query";
-import { Download, Trash2 } from "lucide-react";
+import { Download, DownloadCloud, Merge, Trash, Trash2 } from "lucide-react";
 import ClipLoader from "react-spinners/ClipLoader";
 
 interface MergeTabProps {
   models?: Model[];
   shirts?: Shirt[];
+  combinedImages?: CombinedImage[];
   color: string;
 }
 
 const MergeTab: React.FC<MergeTabProps> = (props) => {
-  const { models, shirts, color } = props;
+  const { models, shirts, color, combinedImages } = props;
 
   const { postCombination, deleteCombination } = useCombination();
-  const { downloadFile } = useDownloadFiles();
+  const { downloadFile, zipAndDownload } = useDownloadFiles();
 
-  const { data: combinedImages } = useQuery<CombinedImage[]>({
-    queryKey: ["/api/combined"],
-    enabled: !!models && !!shirts,
-  });
+  const mergeOnClick = () => {
+    shirts?.map((shirt) => {
+      if (shirt.imageUrl.includes("_front")) {
+        const frontModels = models
+          ?.filter((model) => model.direction === "front")
 
-  console.log({ shirts, models });
+          .filter((model) => model.color === color);
+        if (!frontModels || frontModels.length === 0) {
+          toast({
+            title: "Error",
+            description:
+              "Could not find a matching model. Make to select the right color or upload a new model.",
+          });
+        }
+        if (frontModels && frontModels?.length > 0) {
+          frontModels.map((model) => {
+            postCombination.mutateAsync({
+              model,
+              shirt,
+              color,
+            });
+          });
+        }
+      }
+      if (shirt.imageUrl.includes("_back")) {
+        const backModels = models
+          ?.filter((model) => model.direction === "back")
+
+          .filter((model) => model.color === color);
+        if (!backModels || backModels.length === 0) {
+          toast({
+            title: "Error",
+            description:
+              "Could not find a matching model. Make to select the right color or upload a new model.",
+          });
+        }
+        if (backModels && backModels?.length > 0) {
+          backModels.map((model) => {
+            postCombination.mutateAsync({
+              model,
+              shirt,
+              color,
+            });
+          });
+        }
+      }
+    });
+  };
 
   return (
-    <div>
+    <div className="items-center">
       <h1>Merge and finish</h1>
-      <div className="my-3 justify-between items-center">
-        <Button
-          className="mr-10"
-          onClick={async () =>
-            shirts?.map((shirt) => {
-              if (shirt.imageUrl.includes("_front")) {
-                console.log(
-                  "Shirt Front",
-                  shirt.imageUrl,
-                  models,
-                  models?.filter((model) => model.direction === "front")
-                );
-                models
-                  ?.filter((model) => model.direction === "front")
-                  .map((model) => {
-                    postCombination.mutateAsync({
-                      model,
-                      shirt,
-                      color,
-                      motiv: "Large",
-                    });
-                  });
+      <div>
+        <div className="flex flex-row items-center justify-center gap-5 mb-3 mt-5">
+          <Button
+            disabled={!models || !shirts || postCombination.isPending}
+            onClick={mergeOnClick}
+          >
+            <div className="flex flex-row items-center space-x-2">
+              <Merge size={20} />
+              <span>Merge</span>
+            </div>
+          </Button>
+          {combinedImages && combinedImages.length > 0 && (
+            <Button
+              disabled={postCombination.isPending}
+              variant={"secondary"}
+              onClick={() =>
+                zipAndDownload(
+                  combinedImages?.map((image) => {
+                    return { resultUrl: image.imageUrl };
+                  }) || []
+                )
               }
-              if (shirt.imageUrl.includes("_back")) {
-                console.log("Shirt Back", shirt.imageUrl);
-                models
-                  ?.filter((model) => model.direction === "back")
-                  .map((model) => {
-                    postCombination.mutateAsync({
-                      model,
-                      shirt,
-                      color,
-                      motiv: "Large",
-                    });
-                  });
-              }
-            })
-          }
-        >
-          <span>Merge</span>
-        </Button>
-        <Button
-          onClick={() =>
-            combinedImages?.map((image) =>
-              deleteCombination.mutateAsync({
-                id: image.id.toString(),
-              })
-            )
-          }
-        >
-          <span>Delete all</span>
-        </Button>
+            >
+              <div className="flex flex-row items-center space-x-2">
+                <DownloadCloud size={20} />
+                <span>Download all</span>
+              </div>
+            </Button>
+          )}
+          <Button
+            disabled={postCombination.isPending}
+            variant={"destructive"}
+            onClick={() =>
+              combinedImages?.map((image) =>
+                deleteCombination.mutateAsync({
+                  id: image.id.toString(),
+                })
+              )
+            }
+          >
+            <div className="flex flex-row items-center space-x-2">
+              <Trash size={20} />
+              <span>Delete all</span>
+            </div>
+          </Button>
+        </div>
         <Card className="mt-5">
           <CardContent>
             {combinedImages?.length === 0 && !postCombination.isPending ? (
-              <div className="text-center text-muted-foreground">
+              <div className="text-center text-muted-foreground items-center justify-center">
                 Press `Merge` to combine Models and Shirts
               </div>
             ) : (
@@ -103,10 +140,6 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
                       src={combined.imageUrl}
                       alt="Combined result"
                       className="w-full h-auto rounded-lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // setSelectedImage(combined);
-                      }}
                     />
 
                     <Button

@@ -41,10 +41,9 @@ const useModels = () => {
       queryClient.invalidateQueries({ queryKey: [`/api/models`] });
       toast({
         title: "Success",
-        description: `Model uploaded successfully`,
+        description: `Model or automation uploaded successfully`,
       });
       onClose?.();
-      console.log("OnSuccess triggered");
     },
     onError: (error: Error) => {
       toast({

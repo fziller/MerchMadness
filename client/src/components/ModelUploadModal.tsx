@@ -12,7 +12,8 @@ import { Model } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
-import { ModelEvent, ModelGender, ModelGenre } from "./filter/FilterEnums";
+import DropdownFilter from "./filter/DropdownFilter";
+import { ModelGender } from "./filter/FilterEnums";
 import { Checkbox } from "./ui/checkbox";
 
 type UploadModalProps = {
@@ -21,12 +22,10 @@ type UploadModalProps = {
 
 type ModelData = {
   name?: string;
-  image?: object;
-  height: number;
-  width: number;
+  image: File;
+  isBack: boolean;
+  color: string;
   gender: ModelGender | undefined;
-  event: ModelEvent[];
-  genre: ModelGenre[];
 };
 
 export default function UploadModal({ onClose }: UploadModalProps) {
@@ -40,23 +39,16 @@ export default function UploadModal({ onClose }: UploadModalProps) {
     queryKey: ["/api/models"],
   });
 
+  console.log({ models });
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFormData({
       ...formData,
-      gender: undefined,
+      color: "black",
+      isBack: false,
     });
   }, []);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    uploadModelDocument.mutateAsync({
-      formData,
-      name: nameRef.current?.value ?? "",
-      onClose,
-    });
-  };
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
@@ -64,10 +56,35 @@ export default function UploadModal({ onClose }: UploadModalProps) {
         <DialogHeader>
           <DialogTitle>Upload Model</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Name</Label>
-            <Input name="name" required type="text" ref={nameRef} />
+        <form className="space-y-4">
+          <div className="space-y-2 ">
+            <label className="font-semibold ml-2">{"Color"}</label>
+            <DropdownFilter
+              key={"color"}
+              options={["black", "white", "orange"]}
+              selectedOption={"black"}
+              onSelectOption={(value) => {
+                setFormData({ ...formData, color: value });
+              }}
+              label={"Color"}
+            />
+            <div className="gap-2 flex items-center mt-50">
+              <div className="flex items-center">
+                <label className="font-semibold ml-2 flex-1">
+                  {"Backprint usage"}
+                </label>
+              </div>
+              <div className="flex-1">
+                <Checkbox
+                  checked={isBack}
+                  onCheckedChange={() =>
+                    setIsBack((prev) => {
+                      return !prev;
+                    })
+                  }
+                />
+              </div>
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Model - Image</Label>
@@ -79,25 +96,19 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                   if (file) {
                     console.log("file", file, "fileName", file.name);
                     setModelFileName(file.name);
-                    console.log(isBack);
-                    const result = uploadModelDocument.mutate({
+
+                    uploadModelDocument.mutate({
                       formData: {
                         ...formData,
                         image: file,
                         resultName: file.name,
                         direction: isBack ? "back" : "front",
                       },
-                      name: nameRef.current?.value ?? "",
                     });
                   }
                 }}
                 required
               />
-              <Checkbox
-                checked={isBack}
-                onCheckedChange={() => setIsBack(!isBack)}
-              />
-              <label>{"Backprint usage"}</label>
             </div>
           </div>
           {modelFileName && (
@@ -108,18 +119,15 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const result = uploadModelDocument.mutate({
+                    uploadModelDocument.mutate({
                       formData: {
                         ...formData,
                         image: file,
                         resultName: modelFileName,
                         isAutomation: true,
+                        direction: isBack ? "back" : "front",
                       },
-                      name: nameRef.current?.value ?? "",
-                      isAutomation: true,
-                      resultName: modelFileName,
                     });
-                    console.log("Front automation result", { result });
                   }
                 }}
                 required

@@ -12,8 +12,6 @@ import {
 import FilterPanel from "@/components/FilterPanel";
 import ModelSelection from "@/components/ModelSelection";
 import ModelUploadModal from "@/components/ModelUploadModal";
-import ResultsArea from "@/components/ResultsArea";
-import ShirtSelection from "@/components/ShirtSelection";
 import { Button } from "@/components/ui/button";
 import UploadModal from "@/components/UploadModal";
 import UserManagementModal from "@/components/UserManagementModal";
@@ -238,7 +236,7 @@ export default function HomePage() {
                 });
               }}
             />
-            <ShirtSelection
+            {/* <ShirtSelection
               onToggleFilters={toggleShirtFilters}
               shirtFilter={shirtState}
               onSelectedShirtsChange={(shirts) => setSelectedShirts(shirts)}
@@ -259,7 +257,7 @@ export default function HomePage() {
                 });
               }}
             />
-            <ResultsArea models={selectedModels} shirts={selectedShirts} />
+            <ResultsArea models={selectedModels} shirts={selectedShirts} /> */}
           </div>
         </main>
         {/* Right side menu */}

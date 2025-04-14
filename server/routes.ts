@@ -67,7 +67,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).send("No image file uploaded");
       }
 
-      const { isAutomation, resultName, direction } = req.body;
+      const { isAutomation, resultName, direction, color } = req.body;
 
       const documentUrl = `/uploads/${req.file.filename}`;
       const resultFileName = `model_img_${resultName}.jpg`;
@@ -79,14 +79,14 @@ export function registerRoutes(app: Express): Server {
         );
 
         const imageUrl = `/uploads/${resultFileName}`;
-        const metadata = { ...req.body, name: undefined, image_url: undefined };
+
         const [newModel] = await db
           .insert(models)
           .values({
             name: req.body.name,
             imageUrl,
             documentUrl,
-            metadata: metadata,
+            color,
             direction,
           })
           .returning();
@@ -94,7 +94,11 @@ export function registerRoutes(app: Express): Server {
       } else {
         const [updatedModel] = await db
           .update(models)
-          .set({ automationUrl: `/uploads/${req.file.filename}` })
+          .set({
+            automationUrl: `/uploads/${req.file.filename}`,
+            direction,
+            color,
+          })
           .where(eq(models.imageUrl, `/uploads/${resultFileName}`))
           .returning();
         res.json(updatedModel);
@@ -255,36 +259,8 @@ export function registerRoutes(app: Express): Server {
         motiv,
       }: { model: Model; shirt: Shirt; color: string; motiv: string } =
         req.body;
-      console.log(
-        "Start to combine model and shirt: ",
-        model,
-        shirt,
-        color,
-        motiv
-      );
+
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
-      let foundMotiv,
-        foundColor = null;
-
-      // In order to trigger a front- or a back automation, we need to check the filename.
-      // const motiv = String(shirt.metadata?.motiv ?? {});
-      console.log("Motiv", motiv);
-      // We want to trigger automations depending on the shirt color.
-      if (motiv.includes("Large")) {
-        foundMotiv = "haupt_atn_großes_motiv";
-      } else if (motiv.includes("Small")) {
-        foundMotiv = "haupt_atn_brust_motiv";
-      } else if (motiv.includes("Heart")) {
-        foundMotiv = "haupt_atn_herz_motiv";
-      }
-
-      console.log("metadata", shirt.metadata);
-      // const color = String(shirt.metadata?.color ?? {});
-      if (color.includes("White")) {
-        foundColor = "white";
-      } else if (color.includes("Orange")) {
-        foundColor = "orange";
-      } // else case - no color found, we keep it as null
 
       /* Script execution */
       // We need to add front- or back automation
@@ -303,18 +279,6 @@ export function registerRoutes(app: Express): Server {
             : "250402_Impericon_Backprint_FarbbereichTiefe"
         } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
       );
-
-      // console.log(
-      //   "Triggering script with ",
-      //   `scripts/runTriggerMerchMadnessAction.sh ${
-      //     foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`
-      //   } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
-      // );
-      // shell.exec(
-      //   `scripts/runTriggerMerchMadnessAction.sh ${
-      //     foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`
-      //   } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
-      // );
 
       const [newCombined] = await db
         .insert(combinedImages)

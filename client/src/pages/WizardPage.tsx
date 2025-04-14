@@ -1,18 +1,21 @@
-import ContentCard from "@/components/ContentCard";
 import { useUser } from "@/hooks/use-user";
-import { Model, Shirt } from "@db/schema";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+import useCombination from "@/hooks/useCombination";
+import useShirts from "@/hooks/useShirts";
+import { CombinedImage, Model, Shirt } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import FormWizard from "react-form-wizard-component";
 import "react-form-wizard-component/dist/style.css";
 import MergeTab from "./tabs/MergeTab";
+import ModelSelectTab from "./tabs/ModelSelectTab";
 import UploadImageTab from "./tabs/UploadImageTab";
 
 export default function WizardPage() {
   const [selectedColor, setSelectedColor] = useState("black");
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const { user, logout } = useUser();
+  const { deleteSingleShirt } = useShirts();
+  const { deleteCombination } = useCombination();
+  const { logout } = useUser();
 
   const { data: shirts } = useQuery<Shirt[]>({
     queryKey: ["/api/shirts"],
@@ -20,65 +23,55 @@ export default function WizardPage() {
   const { data: models } = useQuery<Model[]>({
     queryKey: ["/api/models"],
   });
-
-  console.log({ models });
+  const { data: combinedImages } = useQuery<CombinedImage[]>({
+    queryKey: ["/api/combined"],
+    enabled: !!models && !!shirts,
+  });
 
   const handleComplete = () => {
     logout();
-    // Handle form completion logic here
+    shirts?.map((s) => deleteSingleShirt.mutate(s.id));
+    combinedImages?.map((c) =>
+      deleteCombination.mutate({ id: c.id.toString() })
+    );
   };
-  const tabChanged = ({
-    prevIndex,
-    nextIndex,
-  }: {
-    prevIndex: number;
-    nextIndex: number;
-  }) => {
-    console.log("prevIndex", prevIndex);
-    console.log("nextIndex", nextIndex);
-  };
-  console.log("we have found shirts", shirts);
+
   return (
     <div className="space-y-2 items-center justify-center flex-row">
-      {/* <Button onClick={() => logout()}>Logout</Button> add style */}
       <FormWizard
         shape="circle"
         color="#611122"
         onComplete={handleComplete}
-        onTabChange={tabChanged}
+        onTabChange={() => {}}
+        finishButtonText="Clean up & logout"
       >
-        <FormWizard.TabContent title="Upload shirt pictures" icon="ti-user">
-          {/* Add your form inputs and components for the frst step */}
+        <FormWizard.TabContent title="Upload shirt pictures" icon="ti-settings">
           <UploadImageTab
             shirts={shirts}
             selectedColor={selectedColor}
             setSelectedColor={setSelectedColor}
           />
         </FormWizard.TabContent>
-        <FormWizard.TabContent title="Select model" icon="ti-settings">
-          <h1>Model Select</h1>
-          <div className="space-y-2">
-            <ScrollArea className="h-[600px]">
-              <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
-                {models &&
-                  models.map((model) => (
-                    <ContentCard
-                      content={model}
-                      selectedContent={selectedModels}
-                      setSelectedContent={setSelectedModels}
-                    />
-                  ))}
-              </div>
-            </ScrollArea>
-          </div>
+        <FormWizard.TabContent title="Select model" icon="ti-user">
+          <ModelSelectTab
+            models={models}
+            selectedModels={selectedModels}
+            setSelectedModels={setSelectedModels}
+          />
         </FormWizard.TabContent>
         <FormWizard.TabContent title="Combine and load results" icon="ti-check">
           <MergeTab
-            models={selectedModels.map(
-              (model) => models?.find((m) => m.imageUrl === model) as Model
-            )}
+            models={
+              selectedModels.length === 0
+                ? models
+                : selectedModels.map(
+                    (model) =>
+                      models?.find((m) => m.imageUrl === model) as Model
+                  )
+            }
             shirts={shirts}
             color={selectedColor}
+            combinedImages={combinedImages}
           />
         </FormWizard.TabContent>
       </FormWizard>
