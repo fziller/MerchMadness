@@ -14,12 +14,14 @@
 # Prequisites # 
 ###############
 
-while getopts c:f:m:s: flag
+while getopts a:c:f:m:n:s: flag
 do
     case "${flag}" in
+        a) ACTION=${OPTARG};;
         c) MOTIV=${OPTARG};;
         f) RESULT_FILE_NAME=${OPTARG};;
         m) MODEL_DOCUMENT=${OPTARG};;
+        n) ACTION_NAME=${OPTARG};;
         s) SHIRT_FILE=${OPTARG};;
     esac
 done
@@ -29,8 +31,11 @@ done
 
 # ACTION_NAME="Impericon_HAUPTatn"
 # ACTION_NAME="haupt_atn_großes_motiv"
-ACTION_NAME="${MOTIV}"
-ACTION_FILE="${PWD}/photoshop/${ACTION_NAME}.atn"
+
+# ACTION_NAME="${MOTIV}"
+# ACTION_FILE="${PWD}/photoshop/${ACTION_NAME}.atn"
+echo "Our action file: ${ACTION}"
+ACTION_FILE="${PWD}/public${ACTION}"
 SHIRT_FILE="${PWD}/public${SHIRT_FILE}" # SHIRT_FILE already has a leading slash
 MODEL_FILE="${PWD}/public${MODEL_DOCUMENT}"
 LAYER_NAME="Longsleeve"

@@ -19,9 +19,11 @@ export const users = pgTable("users", {
 
 export const models = pgTable("models", {
   id: serial("id").primaryKey(),
+  direction: text("direction").notNull(),
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
   documentUrl: text("document_url").notNull(),
+  automationUrl: text("automation_url"),
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

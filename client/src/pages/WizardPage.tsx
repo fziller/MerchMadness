@@ -1,4 +1,5 @@
 import ContentCard from "@/components/ContentCard";
+import { useUser } from "@/hooks/use-user";
 import { Model, Shirt } from "@db/schema";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import UploadImageTab from "./tabs/UploadImageTab";
 export default function WizardPage() {
   const [selectedColor, setSelectedColor] = useState("black");
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
+  const { user, logout } = useUser();
 
   const { data: shirts } = useQuery<Shirt[]>({
     queryKey: ["/api/shirts"],
@@ -19,8 +21,10 @@ export default function WizardPage() {
     queryKey: ["/api/models"],
   });
 
+  console.log({ models });
+
   const handleComplete = () => {
-    console.log("Form completed!");
+    logout();
     // Handle form completion logic here
   };
   const tabChanged = ({
@@ -35,7 +39,8 @@ export default function WizardPage() {
   };
   console.log("we have found shirts", shirts);
   return (
-    <>
+    <div className="space-y-2 items-center justify-center flex-row">
+      {/* <Button onClick={() => logout()}>Logout</Button> add style */}
       <FormWizard
         shape="circle"
         color="#611122"
@@ -77,10 +82,9 @@ export default function WizardPage() {
           />
         </FormWizard.TabContent>
       </FormWizard>
-      {/* add style */}
       <style>{`
         @import url("https://cdn.jsdelivr.net/gh/lykmapipo/themify-icons@0.1.2/css/themify-icons.css");
       `}</style>
-    </>
+    </div>
   );
 }

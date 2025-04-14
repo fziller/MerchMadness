@@ -11,6 +11,7 @@ import {
 } from "@/components/filter/FilterEnums";
 import FilterPanel from "@/components/FilterPanel";
 import ModelSelection from "@/components/ModelSelection";
+import ModelUploadModal from "@/components/ModelUploadModal";
 import ResultsArea from "@/components/ResultsArea";
 import ShirtSelection from "@/components/ShirtSelection";
 import { Button } from "@/components/ui/button";
@@ -297,7 +298,10 @@ export default function HomePage() {
       </div>
 
       {/* Upload Modals */}
-      {showUploadModal && (
+      {showUploadModal === "model" && (
+        <ModelUploadModal onClose={() => setShowUploadModal(null)} />
+      )}
+      {showUploadModal === "shirt" && (
         <UploadModal
           type={showUploadModal}
           onClose={() => setShowUploadModal(null)}

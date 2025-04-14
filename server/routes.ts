@@ -67,27 +67,38 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).send("No image file uploaded");
       }
 
+      const { isAutomation, resultName, direction } = req.body;
+
       const documentUrl = `/uploads/${req.file.filename}`;
-      const resultFileName = `model_img_${nanoid(8)}.jpg`;
+      const resultFileName = `model_img_${resultName}.jpg`;
 
-      // TODO We need to check for the result of the bash execution and make sure to fail the request if unsuccessful
-      const bash = shell.exec(
-        `scripts/runGetImageFromPSFile.sh -f ${resultFileName} -m ${documentUrl}`
-      );
+      if (!isAutomation) {
+        // TODO We need to check for the result of the bash execution and make sure to fail the request if unsuccessful
+        shell.exec(
+          `scripts/runGetImageFromPSFile.sh -f ${resultFileName} -m ${documentUrl}`
+        );
 
-      const imageUrl = `/uploads/${resultFileName}`;
-      const metadata = { ...req.body, name: undefined, image_url: undefined };
-      const [newModel] = await db
-        .insert(models)
-        .values({
-          name: req.body.name,
-          imageUrl,
-          documentUrl,
-          metadata: metadata,
-        })
-        .returning();
-
-      res.json(newModel);
+        const imageUrl = `/uploads/${resultFileName}`;
+        const metadata = { ...req.body, name: undefined, image_url: undefined };
+        const [newModel] = await db
+          .insert(models)
+          .values({
+            name: req.body.name,
+            imageUrl,
+            documentUrl,
+            metadata: metadata,
+            direction,
+          })
+          .returning();
+        res.json(newModel);
+      } else {
+        const [updatedModel] = await db
+          .update(models)
+          .set({ automationUrl: `/uploads/${req.file.filename}` })
+          .where(eq(models.imageUrl, `/uploads/${resultFileName}`))
+          .returning();
+        res.json(updatedModel);
+      }
     } catch (error) {
       console.error("Error uploading model:", error);
       res.status(500).send("Error uploading model");
@@ -117,11 +128,22 @@ export function registerRoutes(app: Express): Server {
         // Continue even if file deletion fails
       }
 
-      // Delete the document file file
+      // Delete the document file
       try {
         await fs.promises.unlink(
           join(__dirname, "..", "public", model.documentUrl)
         );
+      } catch (err) {
+        console.error("Error deleting file:", err);
+        // Continue even if file deletion fails
+      }
+
+      // Delete the automation file
+      try {
+        model.automationUrl &&
+          (await fs.promises.unlink(
+            join(__dirname, "..", "public", model.automationUrl)
+          ));
       } catch (err) {
         console.error("Error deleting file:", err);
         // Continue even if file deletion fails
@@ -245,10 +267,8 @@ export function registerRoutes(app: Express): Server {
         foundColor = null;
 
       // In order to trigger a front- or a back automation, we need to check the filename.
-      const isFront = shirt.imageUrl.includes("front");
-      const isBack = shirt.imageUrl.includes("back");
       // const motiv = String(shirt.metadata?.motiv ?? {});
-      console.log("Motiv", motiv, isFront, isBack);
+      console.log("Motiv", motiv);
       // We want to trigger automations depending on the shirt color.
       if (motiv.includes("Large")) {
         foundMotiv = "haupt_atn_großes_motiv";
@@ -270,15 +290,31 @@ export function registerRoutes(app: Express): Server {
       // We need to add front- or back automation
       console.log(
         "Triggering script with ",
-        `scripts/runTriggerMerchMadnessAction.sh ${
-          foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`
+        `scripts/runTriggerMerchMadnessAction.sh -a ${model.automationUrl} -n ${
+          shirt.imageUrl.includes("_front")
+            ? "250402_Impericon_Frontprint_FarbbereichTiefe"
+            : "250402_Impericon_Backprint_FarbbereichTiefe"
         } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
       );
       shell.exec(
-        `scripts/runTriggerMerchMadnessAction.sh ${
-          foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`
+        `scripts/runTriggerMerchMadnessAction.sh -a ${model.automationUrl} -n ${
+          shirt.imageUrl.includes("_front")
+            ? "250402_Impericon_Frontprint_FarbbereichTiefe"
+            : "250402_Impericon_Backprint_FarbbereichTiefe"
         } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
       );
+
+      // console.log(
+      //   "Triggering script with ",
+      //   `scripts/runTriggerMerchMadnessAction.sh ${
+      //     foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`
+      //   } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
+      // );
+      // shell.exec(
+      //   `scripts/runTriggerMerchMadnessAction.sh ${
+      //     foundMotiv && `-c ${foundMotiv}${foundColor ? `_${foundColor}` : ""}`
+      //   } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
+      // );
 
       const [newCombined] = await db
         .insert(combinedImages)

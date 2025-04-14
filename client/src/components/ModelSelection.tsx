@@ -84,6 +84,20 @@ export default function ModelSelection({
             />
             Select All
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() =>
+              selectedModels.map((model) =>
+                deleteModel.mutate(
+                  models?.find((m) => m.imageUrl === model)?.id
+                )
+              )
+            }
+          >
+            Delete All
+          </Button>
           <div className="space-y-4 ml-4 w-full">
             <ActiveFilters
               filters={modelFilters}

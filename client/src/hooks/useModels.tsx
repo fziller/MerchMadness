@@ -18,10 +18,12 @@ const useModels = () => {
         if (key === "image" && value instanceof File) {
           form.append("image", value);
         } else {
+          console.log("Appending", key, value);
           form.append(key, String(value));
         }
       });
       form.append("name", name ?? "");
+      console.log("form", form);
 
       const response = await fetch(`/api/models`, {
         method: "POST",
@@ -41,7 +43,8 @@ const useModels = () => {
         title: "Success",
         description: `Model uploaded successfully`,
       });
-      onClose();
+      onClose?.();
+      console.log("OnSuccess triggered");
     },
     onError: (error: Error) => {
       toast({

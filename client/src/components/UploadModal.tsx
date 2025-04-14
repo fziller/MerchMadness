@@ -17,9 +17,7 @@ import {
   ModelGender,
   ModelGenre,
   ShirtMotiv,
-  TagModelEvent,
   TagModelGender,
-  TagModelGenre,
   TagModelHeight,
   TagModelWidth,
   TagShirtBrand,
@@ -28,7 +26,6 @@ import {
   TagShirtSize,
 } from "./filter/FilterEnums";
 import MultiSelectFilter from "./filter/MultiSelectFilter";
-import { RangeSliderFilter } from "./filter/RangeSliderFilter";
 import SingleSelectFilter from "./filter/SingleSelectFilter";
 
 type UploadModalProps = {
@@ -127,35 +124,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                 }}
                 label={TagModelGender.label}
               />
-              <RangeSliderFilter
-                key={TagModelHeight.key}
-                label={TagModelHeight.label}
-                min={TagModelHeight.min}
-                max={TagModelHeight.max}
-                startValue={TagModelHeight.min}
-                selectedValue={formData.height}
-                onValueChange={(changedValue) =>
-                  setFormData({
-                    ...formData,
-                    height: changedValue,
-                  })
-                }
-              />
-              <RangeSliderFilter
-                key={TagModelWidth.key}
-                label={TagModelWidth.label}
-                min={TagModelWidth.min}
-                max={TagModelWidth.max}
-                startValue={TagModelWidth.min}
-                selectedValue={formData.width}
-                onValueChange={(changedValue) =>
-                  setFormData({
-                    ...formData,
-                    width: changedValue,
-                  })
-                }
-              />
-              <MultiSelectFilter
+              {/* <MultiSelectFilter
                 key={TagModelEvent.key}
                 label={TagModelEvent.label}
                 options={TagModelEvent.options}
@@ -178,7 +147,7 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                     genre: selectedOptions as ModelGenre[],
                   });
                 }}
-              />
+              /> */}
             </>
           ) : (
             <>

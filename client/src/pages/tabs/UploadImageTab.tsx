@@ -17,14 +17,19 @@ const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
   const { uploadShirt, deleteSingleShirt } = useShirts();
   return (
     <div>
-      <h1>Select the shirt color and upload shirt images</h1>
-      <div className="space-y-2">
-        <Button
-          onClick={() => shirts?.map((s) => deleteSingleShirt.mutate(s.id))}
-        >
-          Delete all images
-        </Button>
-        <div className="items-center justify-center">
+      <div className="flex-row flex justify-between items-center">
+        <h1>Select the shirt color and upload shirt images</h1>
+
+        {shirts && shirts?.length > 0 && (
+          <Button
+            onClick={() => shirts?.map((s) => deleteSingleShirt.mutate(s.id))}
+          >
+            Delete all images
+          </Button>
+        )}
+      </div>
+      <div className="items-center align-middle justify-center">
+        <div className="items-center justify-center mt-2 w-1/2">
           <DropdownFilter
             key={"color"}
             options={["black", "white", "red"]}
@@ -33,38 +38,42 @@ const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
             label={"Color"}
           />
         </div>
-        <ScrollArea className="h-[600px]">
-          <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
-            {shirts &&
-              shirts.map((shirt) => (
-                <ContentCard
-                  content={shirt}
-                  selectedContent={[]}
-                  setSelectedContent={() => console.log("selected")}
-                  onDeleteClick={(e) => {
-                    e.stopPropagation();
-                    deleteSingleShirt.mutate(shirt.id);
-                  }}
-                />
-              ))}
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const files = e.target.files;
-                if (!files) return;
-                for (let index = 0; index < files.length; index++) {
-                  uploadShirt.mutateAsync({
-                    formData: { image: files[index] },
-                    name: files[index].name,
-                  });
-                }
-              }}
-              multiple
-              required
-            />
-          </div>
-        </ScrollArea>
+        <div className="space-y-2">
+          <ScrollArea className="h-[600px]">
+            <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
+              {shirts &&
+                shirts.map((shirt) => (
+                  <ContentCard
+                    content={shirt}
+                    selectedContent={[]}
+                    setSelectedContent={() => console.log("selected")}
+                    onDeleteClick={(e) => {
+                      e.stopPropagation();
+                      deleteSingleShirt.mutate(shirt.id);
+                    }}
+                  />
+                ))}
+            </div>
+          </ScrollArea>
+        </div>
+        <div className="w-1/2 items-center">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const files = e.target.files;
+              if (!files) return;
+              for (let index = 0; index < files.length; index++) {
+                uploadShirt.mutateAsync({
+                  formData: { image: files[index] },
+                  name: files[index].name,
+                });
+              }
+            }}
+            multiple
+            required
+          />
+        </div>
       </div>
     </div>
   );

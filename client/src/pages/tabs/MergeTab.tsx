@@ -24,26 +24,48 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
     enabled: !!models && !!shirts,
   });
 
+  console.log({ shirts, models });
+
   return (
     <div>
-      <h1>Finish and merge</h1>
-      <div className="space-y-2 flex-row gap-5">
+      <h1>Merge and finish</h1>
+      <div className="my-3 justify-between items-center">
         <Button
-          onClick={() =>
-            models &&
-            models.map((model) =>
-              shirts?.map((shirt) => {
-                console.log("model", model, "shirt", shirt);
-                postCombination.mutateAsync({
-                  model: models?.find(
-                    (m) => m.imageUrl === model.imageUrl
-                  ) as Model,
-                  shirt,
-                  color,
-                  motiv: "Large",
-                });
-              })
-            )
+          className="mr-10"
+          onClick={async () =>
+            shirts?.map((shirt) => {
+              if (shirt.imageUrl.includes("_front")) {
+                console.log(
+                  "Shirt Front",
+                  shirt.imageUrl,
+                  models,
+                  models?.filter((model) => model.direction === "front")
+                );
+                models
+                  ?.filter((model) => model.direction === "front")
+                  .map((model) => {
+                    postCombination.mutateAsync({
+                      model,
+                      shirt,
+                      color,
+                      motiv: "Large",
+                    });
+                  });
+              }
+              if (shirt.imageUrl.includes("_back")) {
+                console.log("Shirt Back", shirt.imageUrl);
+                models
+                  ?.filter((model) => model.direction === "back")
+                  .map((model) => {
+                    postCombination.mutateAsync({
+                      model,
+                      shirt,
+                      color,
+                      motiv: "Large",
+                    });
+                  });
+              }
+            })
           }
         >
           <span>Merge</span>
@@ -59,11 +81,11 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
         >
           <span>Delete all</span>
         </Button>
-        <Card>
+        <Card className="mt-5">
           <CardContent>
             {combinedImages?.length === 0 && !postCombination.isPending ? (
               <div className="text-center text-muted-foreground">
-                Select both a model and a shirt to see results
+                Press `Merge` to combine Models and Shirts
               </div>
             ) : (
               <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
