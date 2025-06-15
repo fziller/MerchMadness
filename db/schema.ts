@@ -1,50 +1,47 @@
 import { relations } from "drizzle-orm";
 import {
-  boolean,
-  jsonb,
-  pgTable,
-  serial,
+  integer,
   text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+  sqliteTable,
+} from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   username: text("username").unique().notNull(),
   password: text("password").notNull(),
-  isAdmin: boolean("is_admin").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isAdmin: integer("is_admin", { mode: "boolean" }).default(false).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
-export const models = pgTable("models", {
-  id: serial("id").primaryKey(),
+export const models = sqliteTable("models", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   direction: text("direction").notNull(),
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
   documentUrl: text("document_url").notNull(),
   automationUrl: text("automation_url"),
   color: text("color").notNull(),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  metadata: text("metadata", { mode: "json" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
-export const shirts = pgTable("shirts", {
-  id: serial("id").primaryKey(),
+export const shirts = sqliteTable("shirts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  metadata: text("metadata", { mode: "json" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
-export const combinedImages = pgTable("combined_images", {
-  id: serial("id").primaryKey(),
-  modelId: serial("model_id").references(() => models.id),
-  shirtId: serial("shirt_id").references(() => shirts.id),
+export const combinedImages = sqliteTable("combined_images", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  modelId: integer("model_id").references(() => models.id),
+  shirtId: integer("shirt_id").references(() => shirts.id),
   imageUrl: text("image_url").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
 });
 
 export const combinedImagesRelations = relations(combinedImages, ({ one }) => ({

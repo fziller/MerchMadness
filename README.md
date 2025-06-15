@@ -13,8 +13,18 @@ This project is a comprehensive e-commerce web application specialized in clothi
 ## Prerequisites
 
 - Node.js 18 or higher
-- PostgreSQL database
 - npm or yarn package manager
+
+## Database
+
+This application uses **SQLite** as its database engine, which provides:
+- Zero-configuration setup
+- File-based storage (`database.db`)
+- ACID compliance
+- Cross-platform compatibility
+- No external database server required
+
+The SQLite database is automatically created and initialized when the application starts. All tables are created with proper relationships and constraints.
 
 ## Getting Started
 
@@ -25,42 +35,25 @@ This project is a comprehensive e-commerce web application specialized in clothi
 npm install
 ```
 
-3. Set up environment variables:
-   Create a `.env` file in the root directory with the following variables:
-
-```env
-DATABASE_URL=postgresql://${USER}@localhost:5432/merchmadness
-```
-
-3.1 Install Postgres
-
-- via Brew or via installer
-  `brew install postgresql`
-  psql -U your_username -d postgres
-  CREATE DATABASE merchmadness;
-
-4. Initialize the database:
+3. Start the development server:
 
 ```bash
-npm run db:push
-```
-
-4.1
-Manually adding a user to login (should not be necessary):
-
-```bash
-psql -U your_username -d postgres
-\c merchmadness
-INSERT INTO users(id, username, password, is_admin, created_at) VALUES (12345, 'fziller', 'fziller', true, '2013-01-01 08:45:00 PST');
-```
-
-5. Start the development server:
-
-```bash
- DATABASE_URL=postgresql://${USER}:@localhost:5432/merchmadness npm run dev
+npm run dev
 ```
 
 The application will be available at `http://localhost:12345`
+
+The SQLite database file (`database.db`) will be automatically created in the project root directory on first run.
+
+## Database Schema
+
+The application uses the following tables:
+- **users**: User authentication and authorization
+- **models**: Model image data and metadata
+- **shirts**: Shirt design data and metadata  
+- **combined_images**: Generated combination images linking models and shirts
+
+All tables are automatically created with proper indexes and foreign key constraints.
 
 ## Project Structure
 

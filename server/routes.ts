@@ -14,9 +14,13 @@ import fs from "fs";
 import { createServer, type Server } from "http";
 import { nanoid } from "nanoid";
 import { dirname, join } from "path";
-import shell from "shelljs";
+import { exec } from "child_process";
+import { promisify } from "util";
 import { fileURLToPath } from "url";
+import multer from "multer";
 import { setupAuth } from "./auth";
+
+const execAsync = promisify(exec);
 
 // ES modules compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -29,9 +33,6 @@ const uploadsDir = join(publicDir, "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-
-// Setup multer
-const multer = (await import("multer")).default;
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -74,9 +75,14 @@ export function registerRoutes(app: Express): Server {
 
       if (!isAutomation) {
         // TODO We need to check for the result of the bash execution and make sure to fail the request if unsuccessful
-        shell.exec(
-          `scripts/runGetImageFromPSFile.sh -f ${resultFileName} -m ${documentUrl}`
-        );
+        try {
+          await execAsync(
+            `scripts/runGetImageFromPSFile.sh -f ${resultFileName} -m ${documentUrl}`
+          );
+        } catch (scriptError) {
+          console.error("Script execution error:", scriptError);
+          return res.status(500).send("Error processing image");
+        }
 
         const imageUrl = `/uploads/${resultFileName}`;
 
@@ -272,13 +278,18 @@ export function registerRoutes(app: Express): Server {
             : "250402_Impericon_Backprint_FarbbereichTiefe"
         } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
       );
-      shell.exec(
-        `scripts/runTriggerMerchMadnessAction.sh -a ${model.automationUrl} -n ${
-          shirt.imageUrl.includes("_front")
-            ? "250402_Impericon_Frontprint_FarbbereichTiefe"
-            : "250402_Impericon_Backprint_FarbbereichTiefe"
-        } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
-      );
+      try {
+        await execAsync(
+          `scripts/runTriggerMerchMadnessAction.sh -a ${model.automationUrl} -n ${
+            shirt.imageUrl.includes("_front")
+              ? "250402_Impericon_Frontprint_FarbbereichTiefe"
+              : "250402_Impericon_Backprint_FarbbereichTiefe"
+          } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
+        );
+      } catch (scriptError) {
+        console.error("Script execution error:", scriptError);
+        // Continue with database insertion even if script fails
+      }
 
       const [newCombined] = await db
         .insert(combinedImages)
