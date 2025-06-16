@@ -28,6 +28,8 @@ done
 # Define variables to make the script more flexible
 # ACTION_FILE="${PWD}/photoshop/Impericon_T-shirt_Woman.atn"
 
+echo "our directory from shell: ${PWD}"
+
 echo "Our action file: ${ACTION}"
 ACTION_FILE="${PWD}/public${ACTION}"
 SHIRT_FILE="${PWD}/public${SHIRT_FILE}" # SHIRT_FILE already has a leading slash

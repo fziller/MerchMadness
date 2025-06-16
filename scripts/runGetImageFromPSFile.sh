@@ -12,6 +12,8 @@ do
     esac
 done
 
+echo "our directory from shell: ${PWD}"
+
 # Define variables to make the script more flexible
 MODEL_FILE="${PWD}/public${MODEL_DOCUMENT}"
 RESULT_FILE_PATH="${PWD}/public/uploads/${RESULT_FILE_NAME}"

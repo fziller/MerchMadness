@@ -7,17 +7,17 @@ import {
   shirts,
   users,
 } from "@db/schema";
+import { exec } from "child_process";
 import { eq } from "drizzle-orm";
 import type { Express } from "express";
 import express from "express";
 import fs from "fs";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { nanoid } from "nanoid";
 import { dirname, join } from "path";
-import { exec } from "child_process";
-import { promisify } from "util";
 import { fileURLToPath } from "url";
-import multer from "multer";
+import { promisify } from "util";
 import { setupAuth } from "./auth";
 
 const execAsync = promisify(exec);
@@ -27,7 +27,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Ensure uploads directory exists
-const publicDir = join(__dirname, "..", "public");
+const publicDir = join(__dirname, "public");
 const uploadsDir = join(publicDir, "uploads");
 
 if (!fs.existsSync(uploadsDir)) {
@@ -130,9 +130,7 @@ export function registerRoutes(app: Express): Server {
 
       // Delete the image file
       try {
-        await fs.promises.unlink(
-          join(__dirname, "..", "public", model.imageUrl)
-        );
+        await fs.promises.unlink(join(__dirname, "public", model.imageUrl));
       } catch (err) {
         console.error("Error deleting file:", err);
         // Continue even if file deletion fails
@@ -140,9 +138,7 @@ export function registerRoutes(app: Express): Server {
 
       // Delete the document file
       try {
-        await fs.promises.unlink(
-          join(__dirname, "..", "public", model.documentUrl)
-        );
+        await fs.promises.unlink(join(__dirname, "public", model.documentUrl));
       } catch (err) {
         console.error("Error deleting file:", err);
         // Continue even if file deletion fails
@@ -152,7 +148,7 @@ export function registerRoutes(app: Express): Server {
       try {
         model.automationUrl &&
           (await fs.promises.unlink(
-            join(__dirname, "..", "public", model.automationUrl)
+            join(__dirname, "public", model.automationUrl)
           ));
       } catch (err) {
         console.error("Error deleting file:", err);
@@ -229,9 +225,7 @@ export function registerRoutes(app: Express): Server {
 
       // Delete the physical file
       try {
-        await fs.promises.unlink(
-          join(__dirname, "..", "public", shirt.imageUrl)
-        );
+        await fs.promises.unlink(join(__dirname, "public", shirt.imageUrl));
       } catch (err) {
         console.error("Error deleting file:", err);
         // Continue even if file deletion fails
@@ -280,7 +274,9 @@ export function registerRoutes(app: Express): Server {
       );
       try {
         await execAsync(
-          `scripts/runTriggerMerchMadnessAction.sh -a ${model.automationUrl} -n ${
+          `scripts/runTriggerMerchMadnessAction.sh -a ${
+            model.automationUrl
+          } -n ${
             shirt.imageUrl.includes("_front")
               ? "250402_Impericon_Frontprint_FarbbereichTiefe"
               : "250402_Impericon_Backprint_FarbbereichTiefe"
@@ -322,9 +318,7 @@ export function registerRoutes(app: Express): Server {
 
       // Delete the physical file
       try {
-        await fs.promises.unlink(
-          join(__dirname, "..", "public", combined.imageUrl)
-        );
+        await fs.promises.unlink(join(__dirname, "public", combined.imageUrl));
       } catch (err) {
         console.error("Error deleting file:", err);
         // Continue even if file deletion fails

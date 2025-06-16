@@ -31,7 +31,7 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
           toast({
             title: "Error",
             description:
-              "Could not find a matching model. Make to select the right color or upload a new model.",
+              "Could not find a matching model. Make sure to select the right color or upload a new model.",
           });
         }
         if (frontModels && frontModels?.length > 0) {
@@ -53,7 +53,7 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
           toast({
             title: "Error",
             description:
-              "Could not find a matching model. Make to select the right color or upload a new model.",
+              "Could not find a matching model. Make sure to select the right color or upload a new model.",
           });
         }
         if (backModels && backModels?.length > 0) {
