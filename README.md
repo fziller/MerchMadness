@@ -46,6 +46,17 @@ The application will be available at `http://localhost:5000`
 
 The SQLite database file (`database.db`) will be automatically created in the project root directory on first run.
 
+## Default Users
+
+The application automatically creates two default users on first startup:
+
+| Username | Password | Role |
+|----------|----------|------|
+| admin    | admin    | Administrator |
+| user     | user     | Regular User |
+
+You can log in with either account to access the application. Admin users have additional privileges for user management and system administration.
+
 ## Database Schema
 
 The application uses the following tables:
