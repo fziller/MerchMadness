@@ -18,6 +18,7 @@ This project is a comprehensive e-commerce web application specialized in clothi
 ## Database
 
 This application uses **SQLite** as its database engine, which provides:
+
 - Zero-configuration setup
 - File-based storage (`database.db`)
 - ACID compliance
@@ -41,16 +42,17 @@ npm install
 npm run dev
 ```
 
-The application will be available at `http://localhost:12345`
+The application will be available at `http://localhost:5000`
 
 The SQLite database file (`database.db`) will be automatically created in the project root directory on first run.
 
 ## Database Schema
 
 The application uses the following tables:
+
 - **users**: User authentication and authorization
 - **models**: Model image data and metadata
-- **shirts**: Shirt design data and metadata  
+- **shirts**: Shirt design data and metadata
 - **combined_images**: Generated combination images linking models and shirts
 
 All tables are automatically created with proper indexes and foreign key constraints.
@@ -69,6 +71,13 @@ All tables are automatically created with proper indexes and foreign key constra
 - `npm run db:push` - Push database schema changes
 - `npm start` - Run the production server
 
+## Production
+
+- Make sure to have at least `node 18` installed.
+- Run `yarn build` to bundle client and server into dist directory.
+- Go into ` cd dist` and run `npm i --force`.
+- Run `NODE_ENV=production node index.js`.
+
 ## Technology Stack
 
 - Frontend:
@@ -80,7 +89,7 @@ All tables are automatically created with proper indexes and foreign key constra
 
 - Backend:
   - Node.js with Express
-  - PostgreSQL with Drizzle ORM
+  - SQlite DB with Drizzle ORM
   - Passport.js for authentication
 
 ## Some memos

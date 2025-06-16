@@ -46,12 +46,13 @@ export function setupAuth(app: Express) {
     }),
   };
 
-  if (app.get("env") === "production") {
-    app.set("trust proxy", 1);
-    sessionSettings.cookie = {
-      secure: true,
-    };
-  }
+  // Disabling this to make it easier to use, even without httpsq
+  // if (app.get("env") === "production") {
+  //   app.set("trust proxy", 1);
+  //   sessionSettings.cookie = {
+  //     secure: true,
+  //   };
+  // }
 
   app.use(session(sessionSettings));
   app.use(passport.initialize());
