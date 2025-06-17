@@ -66,7 +66,6 @@ const useCombination = () => {
       return response.json();
     },
     onSuccess: (data, { onSuccess }) => {
-      console.log("Success!", { data });
       queryClient.invalidateQueries({
         queryKey: [`/api/combined`],
         refetchType: "all",

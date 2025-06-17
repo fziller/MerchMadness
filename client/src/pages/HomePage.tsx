@@ -277,13 +277,6 @@ export default function HomePage() {
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={() => setShowUploadModal("shirt")}
-                  >
-                    Upload Shirt
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
                     onClick={() => setShowUserManagementModal(true)}
                   >
                     User Management

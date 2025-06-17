@@ -1,9 +1,5 @@
 import { relations } from "drizzle-orm";
-import {
-  integer,
-  text,
-  sqliteTable,
-} from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const users = sqliteTable("users", {
@@ -11,7 +7,9 @@ export const users = sqliteTable("users", {
   username: text("username").unique().notNull(),
   password: text("password").notNull(),
   isAdmin: integer("is_admin", { mode: "boolean" }).default(false).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
 export const models = sqliteTable("models", {
@@ -21,10 +19,15 @@ export const models = sqliteTable("models", {
   imageUrl: text("image_url").notNull(),
   documentUrl: text("document_url").notNull(),
   automationUrl: text("automation_url"),
+  automationName: text("automation_name"),
   color: text("color").notNull(),
   metadata: text("metadata", { mode: "json" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
 export const shirts = sqliteTable("shirts", {
@@ -32,8 +35,12 @@ export const shirts = sqliteTable("shirts", {
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
   metadata: text("metadata", { mode: "json" }),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
 export const combinedImages = sqliteTable("combined_images", {
@@ -41,7 +48,9 @@ export const combinedImages = sqliteTable("combined_images", {
   modelId: integer("model_id").references(() => models.id),
   shirtId: integer("shirt_id").references(() => shirts.id),
   imageUrl: text("image_url").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
 export const combinedImagesRelations = relations(combinedImages, ({ one }) => ({

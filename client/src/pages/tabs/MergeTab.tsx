@@ -20,53 +20,40 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
   const { postCombination, deleteCombination } = useCombination();
   const { downloadFile, zipAndDownload } = useDownloadFiles();
 
-  const mergeOnClick = () => {
-    shirts?.map((shirt) => {
-      if (shirt.imageUrl.includes("_front")) {
-        const frontModels = models
-          ?.filter((model) => model.direction === "front")
+  const mergeOnClick = async () => {
+    for (const shirt of shirts ?? []) {
+      const isFront = shirt.imageUrl.includes("_front");
+      const isBack = shirt.imageUrl.includes("_back");
 
-          .filter((model) => model.color === color);
-        if (!frontModels || frontModels.length === 0) {
+      const matchingModels = models
+        ?.filter(
+          (model) =>
+            model.direction === (isFront ? "front" : isBack ? "back" : "")
+        )
+        .filter((model) => model.color === color);
+
+      if (!matchingModels || matchingModels.length === 0) {
+        toast({
+          title: "Error",
+          description:
+            "Could not find a matching model. Make sure to select the right color or upload a new model.",
+        });
+        continue; // weiter zum nächsten Shirt
+      }
+
+      for (const model of matchingModels) {
+        try {
+          await postCombination.mutateAsync({ model, shirt, color });
+        } catch (err) {
           toast({
-            title: "Error",
-            description:
-              "Could not find a matching model. Make sure to select the right color or upload a new model.",
-          });
-        }
-        if (frontModels && frontModels?.length > 0) {
-          frontModels.map((model) => {
-            postCombination.mutateAsync({
-              model,
-              shirt,
-              color,
-            });
+            title: "Fehler beim Kombinieren",
+            description: `Shirt ${shirt.name ?? shirt.id} und Model ${
+              model.name ?? model.id
+            }`,
           });
         }
       }
-      if (shirt.imageUrl.includes("_back")) {
-        const backModels = models
-          ?.filter((model) => model.direction === "back")
-
-          .filter((model) => model.color === color);
-        if (!backModels || backModels.length === 0) {
-          toast({
-            title: "Error",
-            description:
-              "Could not find a matching model. Make sure to select the right color or upload a new model.",
-          });
-        }
-        if (backModels && backModels?.length > 0) {
-          backModels.map((model) => {
-            postCombination.mutateAsync({
-              model,
-              shirt,
-              color,
-            });
-          });
-        }
-      }
-    });
+    }
   };
 
   return (
@@ -76,7 +63,7 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
         <div className="flex flex-row items-center justify-center gap-5 mb-3 mt-5">
           <Button
             disabled={!models || !shirts || postCombination.isPending}
-            onClick={mergeOnClick}
+            onClick={async () => await mergeOnClick()}
           >
             <div className="flex flex-row items-center space-x-2">
               <Merge size={20} />

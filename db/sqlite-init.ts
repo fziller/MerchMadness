@@ -1,8 +1,8 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
-import * as schema from "./schema";
 import { randomBytes, scrypt } from "crypto";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import { promisify } from "util";
+import * as schema from "./schema";
 
 const scryptAsync = promisify(scrypt);
 
@@ -44,6 +44,7 @@ export async function initializeSqliteDatabase() {
         image_url TEXT NOT NULL,
         document_url TEXT NOT NULL,
         automation_url TEXT,
+        automation_name TEXT,
         color TEXT NOT NULL,
         metadata TEXT,
         created_at INTEGER NOT NULL,
@@ -75,8 +76,10 @@ export async function initializeSqliteDatabase() {
     `);
 
     // Check if default users already exist
-    const existingUsers = sqlite.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number };
-    
+    const existingUsers = sqlite
+      .prepare("SELECT COUNT(*) as count FROM users")
+      .get() as { count: number };
+
     if (existingUsers.count === 0) {
       // Create default users
       const adminPasswordHash = await hashPassword("admin");
@@ -84,18 +87,28 @@ export async function initializeSqliteDatabase() {
       const currentTime = Date.now();
 
       // Insert admin user
-      sqlite.prepare(`
+      sqlite
+        .prepare(
+          `
         INSERT INTO users (username, password, is_admin, created_at) 
         VALUES (?, ?, ?, ?)
-      `).run("admin", adminPasswordHash, 1, currentTime);
+      `
+        )
+        .run("admin", adminPasswordHash, 1, currentTime);
 
       // Insert regular user
-      sqlite.prepare(`
+      sqlite
+        .prepare(
+          `
         INSERT INTO users (username, password, is_admin, created_at) 
         VALUES (?, ?, ?, ?)
-      `).run("user", userPasswordHash, 0, currentTime);
+      `
+        )
+        .run("user", userPasswordHash, 0, currentTime);
 
-      console.log("Default users created: admin (admin/admin) and user (user/user)");
+      console.log(
+        "Default users created: admin (admin/admin) and user (user/user)"
+      );
     }
 
     console.log("SQLite database initialized successfully");

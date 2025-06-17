@@ -14,11 +14,6 @@ export function filterByType(filters: MetaData | ShirtState, entity: any) {
       // String types need to match exactly.
       // Example: Gender - if male is selected, female will be filtered.
       if (typeof filters[key] === "string" && filters[key] !== "") {
-        console.log(
-          "Filtering by string",
-          filters[key],
-          entity.metadata?.[key]
-        );
         if (filters[key] !== entity.metadata?.[key]) {
           filtered = true;
           break;
@@ -39,12 +34,6 @@ export function filterByType(filters: MetaData | ShirtState, entity: any) {
       // Example: Genre Christmas is set. Entity containing Christmas and Easter will be shown,
       // entity containing only easter will be filtered.
       if (Array.isArray(filters[key]) && filters[key].length !== 0) {
-        console.log(
-          "Filtering by array",
-          filters[key],
-          entity.metadata?.[key],
-          !filters[key].includes(entity.metadata?.[key])
-        );
         if (!entity.metadata?.[key].includes(filters[key])) {
           filtered = true;
           break;

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import useModels from "@/hooks/useModels";
 import { Model } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import DropdownFilter from "./filter/DropdownFilter";
 import { ModelGender } from "./filter/FilterEnums";
@@ -30,17 +30,19 @@ type ModelData = {
 
 export default function UploadModal({ onClose }: UploadModalProps) {
   // TODO Replace with a useRef hook as we do not need to rerender the view when the input changes!!!!
-  // Can be accessed with ref.current.value!
-  const [formData, setFormData] = useState<ModelData>({});
+
   const { uploadModelDocument } = useModels();
+
+  const [formData, setFormData] = useState<ModelData>({});
   const [modelFileName, setModelFileName] = useState<string>("");
   const [isBack, setIsBack] = useState<boolean>(false);
+
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [automationFile, setAutomationFile] = useState<File | null>(null);
+
   const { data: models } = useQuery<Model[]>({
     queryKey: ["/api/models"],
   });
-
-  console.log({ models });
-  const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFormData({
@@ -94,17 +96,8 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    console.log("file", file, "fileName", file.name);
                     setModelFileName(file.name);
-
-                    uploadModelDocument.mutate({
-                      formData: {
-                        ...formData,
-                        image: file,
-                        resultName: file.name,
-                        direction: isBack ? "back" : "front",
-                      },
-                    });
+                    setModelFile(file);
                   }
                 }}
                 required
@@ -119,15 +112,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    uploadModelDocument.mutate({
-                      formData: {
-                        ...formData,
-                        image: file,
-                        resultName: modelFileName,
-                        isAutomation: true,
-                        direction: isBack ? "back" : "front",
-                      },
-                    });
+                    setAutomationFile(file);
                   }
                 }}
                 required
@@ -142,7 +127,24 @@ export default function UploadModal({ onClose }: UploadModalProps) {
             <Button
               type="button"
               disabled={uploadModelDocument.isPending}
-              onClick={onClose}
+              onClick={() => {
+                // After we press save, we start by uploading the model file
+                // plus converting it to an jpg to show.
+                uploadModelDocument.mutate({
+                  formData: {
+                    ...formData,
+                    model: { image: modelFile, resultName: modelFile?.name },
+                    automation: {
+                      image: automationFile,
+                      resultName: automationFile?.name,
+                      isAutomation: true,
+                    },
+                    direction: isBack ? "back" : "front",
+                  },
+                });
+
+                onClose();
+              }}
             >
               {uploadModelDocument.isPending ? (
                 <ClipLoader

@@ -7,7 +7,7 @@ import useModels from "@/hooks/useModels";
 import { filterByType } from "@/lib/utils";
 import type { Model } from "@db/schema";
 import { useQuery } from "@tanstack/react-query";
-import { SlidersHorizontal, Trash } from "lucide-react";
+import { Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
 import ContentCard from "./ContentCard";
@@ -109,16 +109,6 @@ export default function ModelSelection({
               }}
             />
           </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={onToggleFilters} // Fixed onClick handler
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filters
-          </Button>
         </div>
 
         <ScrollArea className="h-[400px]">

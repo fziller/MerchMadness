@@ -63,7 +63,7 @@ export default function UserManagementModal({
       queryClient.invalidateQueries({ queryKey: [`/api/users`] });
       toast({
         title: "Success",
-        description: `Successfully updated user ${payload.username}`,
+        description: `Successfully updated user '${payload.username}'`,
       });
     },
     onError: (error: Error) => {

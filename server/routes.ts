@@ -20,38 +20,41 @@ import { fileURLToPath } from "url";
 import { promisify } from "util";
 import { setupAuth } from "./auth";
 
-const execAsync = promisify(exec);
-
-// ES modules compatibility
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Ensure uploads directory exists
-const publicDir = join(__dirname, "public");
-const uploadsDir = join(publicDir, "uploads");
-
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadsDir,
-    filename: (req, file, cb) => {
-      // Clean the original filename and add timestamp
-      const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, "_");
-      cb(
-        null,
-        `${
-          req.url.endsWith("models") ? "model_doc" : "shirt"
-        }_${Date.now()}_${cleanName}`
-      );
-    },
-  }),
-});
-
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
+
+  const execAsync = promisify(exec);
+
+  // ES modules compatibility
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+
+  // The structure is different when we run it directly from the repository.
+  const publicDir =
+    app.get("env") === "production"
+      ? join(__dirname, "public")
+      : join(__dirname, "..", "public");
+  const uploadsDir = join(publicDir, "uploads");
+
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  const upload = multer({
+    storage: multer.diskStorage({
+      destination: uploadsDir,
+      filename: (req, file, cb) => {
+        // Clean the original filename and add timestamp
+        const cleanName = file.originalname.replace(/[^a-zA-Z0-9.]/g, "_");
+        cb(
+          null,
+          `${
+            req.url.endsWith("models") ? "model_doc" : "shirt"
+          }_${Date.now()}_${cleanName}`
+        );
+      },
+    }),
+  });
 
   // Serve uploaded files
   app.use("/uploads", express.static(uploadsDir));
@@ -62,19 +65,21 @@ export function registerRoutes(app: Express): Server {
     res.json(allModels);
   });
 
-  app.post("/api/models", upload.single("image"), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).send("No image file uploaded");
-      }
+  app.post(
+    "/api/models",
+    upload.fields([{ name: "modelFile" }, { name: "automationFile" }]),
+    async (req, res) => {
+      try {
+        if (!req.files) {
+          return res.status(400).send("No image file uploaded");
+        }
 
-      const { isAutomation, resultName, direction, color } = req.body;
+        const { resultName, direction, color } = req.body;
 
-      const documentUrl = `/uploads/${req.file.filename}`;
-      const resultFileName = `model_img_${resultName}.jpg`;
+        const documentUrl = `/uploads/${req.files.modelFile[0].filename}`;
+        const resultFileName = `model_img_${resultName}.jpg`;
+        const imageUrl = `/uploads/${resultFileName}`;
 
-      if (!isAutomation) {
-        // TODO We need to check for the result of the bash execution and make sure to fail the request if unsuccessful
         try {
           await execAsync(
             `scripts/runGetImageFromPSFile.sh -f ${resultFileName} -m ${documentUrl}`
@@ -84,8 +89,6 @@ export function registerRoutes(app: Express): Server {
           return res.status(500).send("Error processing image");
         }
 
-        const imageUrl = `/uploads/${resultFileName}`;
-
         const [newModel] = await db
           .insert(models)
           .values({
@@ -94,26 +97,18 @@ export function registerRoutes(app: Express): Server {
             documentUrl,
             color,
             direction,
+            automationUrl: `/uploads/${req.files?.automationFile?.[0].filename}`,
+            automationName:
+              req.files?.automationFile?.[0].originalname.split(".")[0],
           })
           .returning();
         res.json(newModel);
-      } else {
-        const [updatedModel] = await db
-          .update(models)
-          .set({
-            automationUrl: `/uploads/${req.file.filename}`,
-            direction,
-            color,
-          })
-          .where(eq(models.imageUrl, `/uploads/${resultFileName}`))
-          .returning();
-        res.json(updatedModel);
+      } catch (error) {
+        console.error("Error uploading model:", error);
+        res.status(500).send("Error uploading model");
       }
-    } catch (error) {
-      console.error("Error uploading model:", error);
-      res.status(500).send("Error uploading model");
     }
-  });
+  );
 
   app.delete("/api/models/:id", async (req, res) => {
     try {
@@ -179,12 +174,9 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/shirts", upload.single("image"), async (req, res) => {
     try {
       const { name } = req.body;
-      console.log("Triggering upload of image", name);
       if (!req.file) {
         return res.status(400).send("No image file uploaded");
       }
-
-      console.log("Triggering upload of image", req.file);
 
       const imageUrl = `/uploads/${req.file.filename}`;
 
@@ -263,24 +255,9 @@ export function registerRoutes(app: Express): Server {
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
 
       /* Script execution */
-      // We need to add front- or back automation
-      console.log(
-        "Triggering script with ",
-        `scripts/runTriggerMerchMadnessAction.sh -a ${model.automationUrl} -n ${
-          shirt.imageUrl.includes("_front")
-            ? "250402_Impericon_Frontprint_FarbbereichTiefe"
-            : "250402_Impericon_Backprint_FarbbereichTiefe"
-        } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
-      );
       try {
         await execAsync(
-          `scripts/runTriggerMerchMadnessAction.sh -a ${
-            model.automationUrl
-          } -n ${
-            shirt.imageUrl.includes("_front")
-              ? "250402_Impericon_Frontprint_FarbbereichTiefe"
-              : "250402_Impericon_Backprint_FarbbereichTiefe"
-          } -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
+          `scripts/runTriggerMerchMadnessAction.sh -a ${model.automationUrl} -n ${model.automationName} -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
         );
       } catch (scriptError) {
         console.error("Script execution error:", scriptError);

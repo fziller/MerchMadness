@@ -14,26 +14,22 @@ const useModels = () => {
       onClose: () => void;
     }) => {
       const form = new FormData();
+      // First iteration: upload model and file.
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === "image" && value instanceof File) {
-          form.append("image", value);
-        } else {
-          console.log("Appending", key, value);
+        if (!(key === "model" || key === "automation")) {
           form.append(key, String(value));
         }
       });
+      form.append("modelFile", formData.model.image);
+      form.append("automationFile", formData.automation.image);
+      form.append("resultName", formData.model.resultName);
       form.append("name", name ?? "");
-      console.log("form", form);
 
       const response = await fetch(`/api/models`, {
         method: "POST",
         body: form,
         credentials: "include",
       });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
 
       return response.json();
     },
