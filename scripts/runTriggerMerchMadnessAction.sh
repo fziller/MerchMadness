@@ -112,11 +112,11 @@ try {
   app.activeDocument.saveAs(file, options, true, Extension.LOWERCASE);
 
 
-  //while (app.documents.length > 0) {
-  //  app.documents[0].close(SaveOptions.DONOTSAVECHANGES);
-  //}  
-  // var idquit = charIDToTypeID( "quit" );
-  // executeAction( idquit, undefined, DialogModes.ALL );
+  while (app.documents.length > 0) {
+    app.documents[0].close(SaveOptions.DONOTSAVECHANGES);
+  }  
+  var idquit = charIDToTypeID( "quit" );
+  executeAction( idquit, undefined, DialogModes.ALL );
 } catch (e) {
   // alert("Error on step " + debugStep + ": " + e.message);
   // app.ActiveDocument.Close(SaveOptions.DONOTSAVECHANGES)
