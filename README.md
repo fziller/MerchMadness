@@ -50,10 +50,10 @@ The SQLite database file (`database.db`) will be automatically created in the pr
 
 The application automatically creates two default users on first startup:
 
-| Username | Password | Role |
-|----------|----------|------|
+| Username | Password | Role          |
+| -------- | -------- | ------------- |
 | admin    | admin    | Administrator |
-| user     | user     | Regular User |
+| user     | user     | Regular User  |
 
 You can log in with either account to access the application. Admin users have additional privileges for user management and system administration.
 
@@ -119,11 +119,9 @@ All tables are automatically created with proper indexes and foreign key constra
 
 This issue can have multiple problems:
 
-- After opening the model file, the automation needs to access to layer 'Smart-Objekt'. If the automation
-  does not provide this as a first step, it needs to be added. This can be done via recording a step and adding it
-  into the automation. Make sure this is happening.
-- It can happen, that the same automation is available multiple times and it will access an older version. Makes sure to
-  delete all available automations before triggering another run with an automation.
+- After opening the model file, the automation needs to access to layer 'Smart-Objekt'. If the automation does not provide this as a first step, it needs to be added. This can be done via recording a step and adding it into the automation. Make sure this is happening.
+- It can happen, that the same automation is available multiple times and it will access an older version. Makes sure to delete all available automations before triggering another run with an automation.
+- Make sure the right automation is triggered. Double check the created runner file under server/scripts.
 
 #### The result looks bad using the app, but good when automation runs manually.
 

@@ -17,8 +17,8 @@ import { nanoid } from "nanoid";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { setupAuth } from "./auth";
-import { runGetImageFromPSFile } from "../scripts/runGetImageFromPSFile";
-import { runTriggerMerchMadnessAction } from "../scripts/runTriggerMerchMadnessAction";
+import { runGetImageFromPSFile } from "./scripts/runGetImageFromPSFile";
+import { runTriggerMerchMadnessAction } from "./scripts/runTriggerMerchMadnessAction";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -244,8 +244,8 @@ export function registerRoutes(app: Express): Server {
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
 
       const actionName = shirt.imageUrl.includes("_front")
-        ? "250402_Impericon_Frontprint_FarbbereichTiefe"
-        : "250402_Impericon_Backprint_FarbbereichTiefe";
+        ? "250402_Impericon_Frontprint_FarbbereichSchwarz"
+        : "250402_Impericon_Backprint_FarbbereichSchwarz";
 
       try {
         await runTriggerMerchMadnessAction({
