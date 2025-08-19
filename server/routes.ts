@@ -7,7 +7,6 @@ import {
   shirts,
   users,
 } from "@db/schema";
-import { exec } from "child_process";
 import { eq } from "drizzle-orm";
 import type { Express } from "express";
 import express from "express";
@@ -17,13 +16,12 @@ import multer from "multer";
 import { nanoid } from "nanoid";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { promisify } from "util";
 import { setupAuth } from "./auth";
+import { runGetImageFromPSFile } from "../scripts/runGetImageFromPSFile";
+import { runTriggerMerchMadnessAction } from "../scripts/runTriggerMerchMadnessAction";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
-
-  const execAsync = promisify(exec);
 
   // ES modules compatibility
   const __filename = fileURLToPath(import.meta.url);
@@ -81,11 +79,9 @@ export function registerRoutes(app: Express): Server {
         const imageUrl = `/uploads/${resultFileName}`;
 
         try {
-          await execAsync(
-            `scripts/runGetImageFromPSFile.sh -f ${resultFileName} -m ${documentUrl}`
-          );
-        } catch (scriptError) {
-          console.error("Script execution error:", scriptError);
+          await runGetImageFromPSFile({ resultFileName, documentUrl });
+        } catch (e) {
+          console.error("Script execution error:", e);
           return res.status(500).send("Error processing image");
         }
 
@@ -244,24 +240,26 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/combined", async (req, res) => {
     try {
-      const {
-        model,
-        shirt,
-        color,
-        motiv,
-      }: { model: Model; shirt: Shirt; color: string; motiv: string } =
-        req.body;
-
+      const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
 
-      /* Script execution */
+      const actionName = shirt.imageUrl.includes("_front")
+        ? "250402_Impericon_Frontprint_FarbbereichTiefe"
+        : "250402_Impericon_Backprint_FarbbereichTiefe";
+
       try {
-        await execAsync(
-          `scripts/runTriggerMerchMadnessAction.sh -a ${model.automationUrl} -n ${model.automationName} -f ${resultFileName} -m ${model.documentUrl} -s ${shirt.imageUrl}`
-        );
-      } catch (scriptError) {
-        console.error("Script execution error:", scriptError);
-        // Continue with database insertion even if script fails
+        await runTriggerMerchMadnessAction({
+          actionUrl: model.automationUrl,
+          resultFileName,
+          modelDocumentUrl: model.documentUrl,
+          shirtFileUrl: shirt.imageUrl,
+          actionName,
+          layerName: "Longsleeve", // <- vormals Bug via getenv
+          actionSetName: "Standardaktionen", // <- check, dass dein .atn so heißt
+        });
+      } catch (e) {
+        console.error("Script execution error:", e);
+        // du wolltest DB trotzdem fortsetzen – okay.
       }
 
       const [newCombined] = await db
@@ -274,8 +272,8 @@ export function registerRoutes(app: Express): Server {
         .returning();
 
       res.json(newCombined);
-    } catch (error) {
-      console.error("Error creating combined image:", error);
+    } catch (err) {
+      console.error("Error creating combined image:", err);
       res.status(500).send("Error creating combined image");
     }
   });
