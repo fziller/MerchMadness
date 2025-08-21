@@ -29,7 +29,6 @@ import MultiSelectFilter from "./filter/MultiSelectFilter";
 import SingleSelectFilter from "./filter/SingleSelectFilter";
 
 type UploadModalProps = {
-  type: "model" | "shirt";
   onClose: () => void;
 };
 
@@ -53,78 +52,61 @@ type ShirtData = {
   motiv: ShirtMotiv | undefined;
 };
 
-export default function UploadModal({ type, onClose }: UploadModalProps) {
+export default function UploadModal({ onClose }: UploadModalProps) {
   // TODO Replace with a useRef hook as we do not need to rerender the view when the input changes!!!!
   // Can be accessed with ref.current.value!
-  const [formData, setFormData] = useState<ModelData | ShirtData>({});
+  const [formData, setFormData] = useState<ModelData | undefined>(undefined);
   const { uploadModelDocument } = useModels();
   const { uploadShirt } = useShirts();
 
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (type === "model") {
-      setFormData({
-        ...formData,
-        gender: undefined,
-        height: TagModelHeight.min,
-        width: TagModelWidth.min,
-        event: [],
-        genre: [],
-      });
-    }
-    if (type === "shirt") {
-      setFormData({
-        ...formData,
-        size: [],
-        color: [],
-      });
-    }
+    setFormData({
+      ...formData,
+      gender: undefined,
+      height: TagModelHeight.min,
+      width: TagModelWidth.min,
+      event: [],
+      genre: [],
+    });
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    type === "model"
-      ? uploadModelDocument.mutateAsync({
-          formData,
-          name: nameRef.current?.value ?? "",
-          onClose,
-        })
-      : uploadShirt.mutateAsync({
-          formData,
-          name: nameRef.current?.value ?? "",
-          onClose,
-        });
+    uploadModelDocument.mutateAsync({
+      formData,
+      name: nameRef.current?.value ?? "",
+      onClose,
+    });
   };
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upload {type}</DialogTitle>
+          <DialogTitle>Upload Model</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Name</Label>
             <Input name="name" required type="text" ref={nameRef} />
           </div>
-
-          {type === "model" ? (
-            <>
-              {/* Gender Selection */}
-              <SingleSelectFilter
-                key={TagModelGender.key}
-                selectedOption={formData.gender}
-                options={TagModelGender.options}
-                onSelectOption={(value) => {
-                  setFormData({
-                    ...formData,
-                    gender: value.toString() as ModelGender,
-                  });
-                }}
-                label={TagModelGender.label}
-              />
-              {/* <MultiSelectFilter
+          <>
+            {/* Gender Selection */}
+            <SingleSelectFilter
+              key={TagModelGender.key}
+              selectedOption={formData.gender}
+              options={TagModelGender.options}
+              onSelectOption={(value) => {
+                setFormData({
+                  ...formData,
+                  gender: value.toString() as ModelGender,
+                });
+              }}
+              label={TagModelGender.label}
+            />
+            {/* <MultiSelectFilter
                 key={TagModelEvent.key}
                 label={TagModelEvent.label}
                 options={TagModelEvent.options}
@@ -148,52 +130,8 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
                   });
                 }}
               /> */}
-            </>
-          ) : (
-            <>
-              <MultiSelectFilter
-                key={TagShirtSize.key}
-                selectedOptions={formData.size}
-                options={TagShirtSize.options}
-                onSelectOption={(selectedOptions) => {
-                  setFormData({ ...formData, size: selectedOptions });
-                }}
-                label={TagShirtSize.label}
-              />
-              <MultiSelectFilter
-                key={TagShirtColor.key}
-                selectedOptions={formData.color}
-                options={TagShirtColor.options}
-                onSelectOption={(selectedOptions) => {
-                  setFormData({ ...formData, color: selectedOptions });
-                }}
-                label={TagShirtColor.label}
-              />
-              <DropdownFilter
-                key={TagShirtBrand.key}
-                options={TagShirtBrand.options}
-                selectedOption={formData.brand}
-                onSelectOption={(value) => {
-                  setFormData({ ...formData, brand: value });
-                }}
-                label={TagShirtBrand.label}
-              />
-              {/* TODO Temporary filter for showcase different shirt merges */}
-              <SingleSelectFilter
-                key={TagShirtMotiv.key}
-                selectedOption={formData.motiv}
-                options={TagShirtMotiv.options}
-                onSelectOption={(value) => {
-                  setFormData({
-                    ...formData,
-                    motiv: value.toString() as ModelGender,
-                  });
-                }}
-                label={TagShirtMotiv.label}
-              />
-            </>
-          )}
-
+          </>
+          )
           <div className="space-y-2">
             <Label>Image</Label>
             <Input
@@ -207,7 +145,6 @@ export default function UploadModal({ type, onClose }: UploadModalProps) {
               required
             />
           </div>
-
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
