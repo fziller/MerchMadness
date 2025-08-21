@@ -10,13 +10,15 @@ import { Trash } from "lucide-react";
 
 interface UploadImageTabProps {
   shirts?: Shirt[];
-  selectedColor: string;
-  setSelectedColor: (color: string) => void;
+  selectedColor: string | undefined;
+  setSelectedColor: (color: string | undefined) => void;
 }
 
 const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
   const { shirts, selectedColor, setSelectedColor } = props;
   const { uploadShirt, deleteSingleShirt } = useShirts();
+
+  console.log("Shirts", shirts);
   return (
     <div className="justify-center items-center">
       <div>
@@ -42,15 +44,17 @@ const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
             onSelectOption={(option) => setSelectedColor(option)}
             selectedOption={selectedColor}
             label={"Shirt Color"}
+            isError={!selectedColor}
           />
         </div>
         <div className="flex-1 gap-4">
-          <label className="font-bold">Upload Image</label>
+          <label className="font-bold">Upload Images</label>
           <Input
-            title="Upload Shirt Image"
-            placeholder="Upload Shirt Image"
-            type="file"
             accept="image/*"
+            className={`${
+              shirts && shirts?.length === 0 && "border-red-400 text-red-400"
+            }`}
+            multiple
             onChange={(e) => {
               const files = e.target.files;
               if (!files) return;
@@ -61,9 +65,16 @@ const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
                 });
               }
             }}
-            multiple
+            placeholder="Upload Shirt Image"
             required
+            title="Upload Shirt Image"
+            type="file"
           />
+          {shirts && shirts?.length === 0 && (
+            <text className="text-red-400">
+              Make sure to upload at least one picture.
+            </text>
+          )}
         </div>
       </div>
       <div className="space-y-2">
