@@ -35,7 +35,6 @@ export default function UploadModal({ onClose }: UploadModalProps) {
 
   const [formData, setFormData] = useState<ModelData>({});
   const [modelFileName, setModelFileName] = useState<string>("");
-  const [isBack, setIsBack] = useState<boolean>(false);
 
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [automationFile, setAutomationFile] = useState<File | null>(null);
@@ -54,7 +53,6 @@ export default function UploadModal({ onClose }: UploadModalProps) {
     setFormData({
       ...formData,
       color: "black",
-      isBack: false,
     });
   }, []);
 
@@ -178,7 +176,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                       resultName: automationFile?.name,
                       isAutomation: true,
                     },
-                    direction: isBack ? "back" : "front",
+                    direction: printDirection,
                   },
                 });
 

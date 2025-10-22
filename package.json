@@ -10,7 +10,7 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "test": "vitest",
-    "postbuild": "cp ./theme.json dist/theme.json && cp ./package.json dist/package.json && cp ./Readme_dist.md dist/README.md && cp -r scripts dist"
+    "postbuild": "cp ./theme.json dist/theme.json && cp ./package.json dist/package.json && cp ./Readme_dist.md dist/README.md"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -49,7 +49,6 @@
     "@testing-library/user-event": "^14.5.2",
     "@types/better-sqlite3": "^7.6.13",
     "@types/multer": "^1.4.12",
-    "@vitest/coverage-v8": "^2.1.8",
     "better-sqlite3": "^11.10.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -84,7 +83,7 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.0",
-    "vitest": "^2.1.8",
+    "vite": "6.0.8",
     "wouter": "^3.3.5",
     "ws": "^8.18.0",
     "zod": "^3.23.8"
@@ -117,7 +116,8 @@
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
     "typescript-eslint": "^8.18.2",
-    "vite": "6.0.8"
+    "vitest": "^2.1.8",
+    "@vitest/coverage-v8": "^2.1.8"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

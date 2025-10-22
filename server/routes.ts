@@ -243,9 +243,9 @@ export function registerRoutes(app: Express): Server {
       const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
 
-      const actionName = shirt.imageUrl.includes("_front")
-        ? "250402_Impericon_Frontprint_FarbbereichSchwarz"
-        : "250402_Impericon_Backprint_FarbbereichSchwarz";
+      // const actionName = shirt.imageUrl.includes("_front")
+      //   ? "250402_Impericon_Frontprint_FarbbereichSchwarz"
+      //   : "250402_Impericon_Backprint_FarbbereichSchwarz";
 
       try {
         await runTriggerMerchMadnessAction({
@@ -253,13 +253,12 @@ export function registerRoutes(app: Express): Server {
           resultFileName,
           modelDocumentUrl: model.documentUrl,
           shirtFileUrl: shirt.imageUrl,
-          actionName,
+          actionName: model.automationName,
           layerName: "Longsleeve", // <- vormals Bug via getenv
-          actionSetName: "Standardaktionen", // <- check, dass dein .atn so heißt
+          actionSetName: "Standardaktionen", // Will be added to the action name
         });
       } catch (e) {
         console.error("Script execution error:", e);
-        // du wolltest DB trotzdem fortsetzen – okay.
       }
 
       const [newCombined] = await db
