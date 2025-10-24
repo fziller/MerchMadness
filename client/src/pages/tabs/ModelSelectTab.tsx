@@ -122,7 +122,7 @@ const ModelSelectTab: React.FC<ModelSelectTabProps> = (props) => {
                 />
               )}
               <div className="w-px bg-border mx-4 my-4 self-stretch" />
-              {frontPrintModels.length > 0 && (
+              {backPrintModels.length > 0 && (
                 <WizardShirtImageColumn
                   onDelete={(id) => {
                     console.log("onDelete", id);
