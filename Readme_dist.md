@@ -45,6 +45,8 @@ The SQLite database file (`database.db`) will be automatically created in the pr
 
 ## TroubleShooting
 
+- It might be necessary to delete `database.db` and let the app create a new one from scratch.
+
 ```bash
 Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from D:\dist\index.js
     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:255:9)

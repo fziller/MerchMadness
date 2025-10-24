@@ -261,7 +261,7 @@ export function registerRoutes(app: Express): Server {
           shirtFileUrl: shirt.imageUrl,
           actionName: model.automationName,
           layerName: "Longsleeve", // <- vormals Bug via getenv
-          actionSetName: "Default Actions", // Will be added to the action name
+          actionSetName: "Standardaktionen", // Will be added to the action name
         });
       } catch (e) {
         console.error("Script execution error:", e);
