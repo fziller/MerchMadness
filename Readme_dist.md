@@ -60,7 +60,7 @@ Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from D:\dist\i
 }
 ```
 
-- Try to install the packages via
+- Try to install the packages via `npm i --force`.
 
 ```bash
 $env:NODE_ENV="development"

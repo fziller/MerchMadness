@@ -40,6 +40,7 @@ export async function initializeSqliteDatabase() {
       CREATE TABLE IF NOT EXISTS models (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         direction TEXT NOT NULL,
+        type TEXT NOT NULL,
         name TEXT NOT NULL,
         image_url TEXT NOT NULL,
         document_url TEXT NOT NULL,
@@ -57,6 +58,7 @@ export async function initializeSqliteDatabase() {
       CREATE TABLE IF NOT EXISTS shirts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
+        color TEXT NOT NULL,
         image_url TEXT NOT NULL,
         metadata TEXT,
         created_at INTEGER NOT NULL,

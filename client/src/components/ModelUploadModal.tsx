@@ -15,6 +15,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 import DropdownFilter from "./filter/DropdownFilter";
 import { ModelGender } from "./filter/FilterEnums";
 import { Checkbox } from "./ui/checkbox";
+import { ModelColors } from "@/context/ModelFilterContext";
 
 type UploadModalProps = {
   onClose: () => void;
@@ -43,6 +44,9 @@ export default function UploadModal({ onClose }: UploadModalProps) {
   >(undefined);
   const [printDirection, setPrintDirection] = useState<
     "front" | "back" | undefined
+  >(undefined);
+  const [modelType, setModelType] = useState<
+    "longsleeve" | "shortsleeve" | undefined
   >(undefined);
 
   const { data: models } = useQuery<Model[]>({
@@ -112,7 +116,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
               </div>
               <DropdownFilter
                 key={"color"}
-                options={["black", "white", "orange"]}
+                options={ModelColors}
                 selectedOption={selectedColor}
                 onSelectOption={(value) => {
                   setSelectedColor(value);
@@ -124,27 +128,53 @@ export default function UploadModal({ onClose }: UploadModalProps) {
           )}
 
           {modelFile && automationFile && selectedColor && (
-            <div className="gap-2 flex flex-col">
-              <div className="flex space-y-2 flex-col">
-                <Label>Shirt print direction</Label>
-                <text className="text-xs text-muted-foreground">
-                  Depending if model shows front or back.
-                </text>
-              </div>
-              <div className="flex flex-row gap-20">
-                <div className="flex flex-row items-center justify-start gap-2">
-                  <text className="text-sm">Backprint</text>
-                  <Checkbox
-                    checked={printDirection === "back"}
-                    onCheckedChange={() => setPrintDirection("back")}
-                  />
+            <div className="flex flex-col gap-4">
+              <div className="gap-1 flex flex-col">
+                <div className="flex space-y-2 flex-col">
+                  <Label>Shirt print direction</Label>
+                  <text className="text-xs text-muted-foreground">
+                    Depending if model shows front or back.
+                  </text>
                 </div>
-                <div className="flex flex-row items-center justify-end gap-2">
-                  <text className="text-sm">Frontprint</text>
-                  <Checkbox
-                    checked={printDirection === "front"}
-                    onCheckedChange={() => setPrintDirection("front")}
-                  />
+                <div className="flex flex-row gap-20">
+                  <div className="flex flex-row items-center justify-start gap-2">
+                    <text className="text-sm">Backprint</text>
+                    <Checkbox
+                      checked={printDirection === "back"}
+                      onCheckedChange={() => setPrintDirection("back")}
+                    />
+                  </div>
+                  <div className="flex flex-row items-center justify-end gap-2">
+                    <text className="text-sm">Frontprint</text>
+                    <Checkbox
+                      checked={printDirection === "front"}
+                      onCheckedChange={() => setPrintDirection("front")}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="gap-2 flex flex-col">
+                <div className="flex space-y-2 flex-col">
+                  <Label>Shirt Type</Label>
+                  <text className="text-xs text-muted-foreground">
+                    Select the shirt type the model is wearing.
+                  </text>
+                </div>
+                <div className="flex flex-row gap-20">
+                  <div className="flex flex-row items-center justify-start gap-2">
+                    <text className="text-sm">Longsleeve</text>
+                    <Checkbox
+                      checked={modelType === "longsleeve"}
+                      onCheckedChange={() => setModelType("longsleeve")}
+                    />
+                  </div>
+                  <div className="flex flex-row items-center justify-end gap-2">
+                    <text className="text-sm">Shortsleeve</text>
+                    <Checkbox
+                      checked={modelType === "shortsleeve"}
+                      onCheckedChange={() => setModelType("shortsleeve")}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -162,6 +192,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                 automationFile === undefined ||
                 selectedColor === undefined ||
                 printDirection === undefined ||
+                modelType === undefined ||
                 uploadModelDocument.isPending
               }
               onClick={() => {
@@ -177,6 +208,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                       isAutomation: true,
                     },
                     direction: printDirection,
+                    type: modelType,
                   },
                 });
 

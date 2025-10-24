@@ -206,7 +206,7 @@ export async function runTriggerMerchMadnessAction(params: {
     shirtFileUrl,
     actionName,
     layerName = "Longsleeve",
-    actionSetName = "Standardaktionen",
+    actionSetName = "Default Actions",
     projectRoot = process.cwd(),
     timeoutMs = 10_000,
     photoshopAppNameMac = "Adobe Photoshop 2025",

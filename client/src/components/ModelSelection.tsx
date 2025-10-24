@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ModelState } from "@/hooks/useModelFilter";
+import { useModelFilter } from "@/context/ModelFilterContext";
 import useModels from "@/hooks/useModels";
 import { filterByType } from "@/lib/utils";
 import type { Model } from "@db/schema";
@@ -10,35 +10,71 @@ import { useQuery } from "@tanstack/react-query";
 import { Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActiveFilters from "./ActiveFilters";
-import ContentCard from "./ContentCard";
-import ImageViewModal from "./ImageViewModal";
 import { MetaData } from "./filter/FilterEnums";
+import ImageViewModal from "./ImageViewModal";
+import ModelSelectionColumn from "./ModelSelectionColumn";
 
 type ModelSelectionProps = {
   onToggleFilters: () => void;
-  modelFilters?: ModelState;
   onSelectedModelsChange: (selectedModels: Model[]) => void;
-  onRemoveFilterFromSelection: (metadata: ModelState) => void;
 };
 
 export default function ModelSelection({
-  onToggleFilters,
-  modelFilters,
   onSelectedModelsChange,
-  onRemoveFilterFromSelection,
 }: ModelSelectionProps) {
-  const [selectedImage, setSelectedImage] = useState<Model | null>(null);
-  const [changeFilterValue, setChangeFilterValue] = useState(false);
+  // hooks
   const { deleteModel } = useModels();
-
-  const { data: models } = useQuery<Model[]>({
+  const { data: models, refetch: refetchModels } = useQuery<Model[]>({
     queryKey: ["/api/models"],
   });
-  const [filteredModels, setFilteredModels] = useState<Model[]>(models || []);
-  const [selectedModels, setSelectedModels] = useState<string[]>([]); // Stores the ids of the selected models
+  const { state: modelFilters } = useModelFilter();
 
+  // states
+  const [selectedImage, setSelectedImage] = useState<Model | null>(null);
+  const [changeFilterValue, setChangeFilterValue] = useState(false);
+  const [filteredModels, setFilteredModels] = useState<Model[]>(models || []);
+  const [selectedModels, setSelectedModels] = useState<number[]>([]); // Stores the ids of the selected models
+  const [frontPrintModels, setFrontPrintModels] = useState<Model[]>([]);
+  const [backPrintModels, setBackPrintModels] = useState<Model[]>([]);
+
+  console.log("selectedModels", models);
+  console.log("modelfilters", modelFilters);
+
+  // effects
   // Effect to show the updated list of models in the modelselection as well as changing the selected models.
   useEffect(() => {
+    if (models === undefined) return;
+    // Check first if we have models for frontPrint.
+    console.log("MODELS", models);
+    console.log("MODEL FILTER", modelFilters);
+    const frontModels = models.filter((model) => model.direction === "front");
+    if (frontModels.length > 0) {
+      const colorFilteredModels = frontModels.filter((m) => {
+        return modelFilters?.color ? m.color === modelFilters?.color : true;
+      });
+      setFrontPrintModels(
+        colorFilteredModels.filter((m) => {
+          return modelFilters?.type ? m.type === modelFilters?.type : true;
+        })
+      );
+    } else {
+      setFrontPrintModels([]);
+    }
+
+    const backModels = models.filter((model) => model.direction === "back");
+    if (backModels.length > 0) {
+      const colorFilteredModels = backModels.filter((m) => {
+        return modelFilters?.color ? m.color === modelFilters?.color : true;
+      });
+      setBackPrintModels(
+        colorFilteredModels.filter((m) => {
+          return modelFilters?.type ? m.type === modelFilters?.type : true;
+        })
+      );
+    } else {
+      setBackPrintModels([]);
+    }
+
     const modelsAfterChange = models
       ? !modelFilters
         ? models
@@ -48,9 +84,7 @@ export default function ModelSelection({
     // If we have models selected, we only want to use the selected ones.
     if (selectedModels.length > 0) {
       onSelectedModelsChange(
-        modelsAfterChange.filter((model) =>
-          selectedModels.includes(model.imageUrl)
-        )
+        modelsAfterChange.filter((model) => selectedModels.includes(model.id))
       );
       // If no model is selected, we assume to take every model we see.
     } else {
@@ -72,7 +106,7 @@ export default function ModelSelection({
             onClick={() =>
               selectedModels.length === filteredModels.length
                 ? setSelectedModels([])
-                : setSelectedModels(models?.map((model) => model.imageUrl))
+                : setSelectedModels(models?.map((model) => model.id))
             }
           >
             <Checkbox
@@ -105,53 +139,40 @@ export default function ModelSelection({
               onRemove={(key) => {
                 modelFilters && delete modelFilters[key];
                 setChangeFilterValue(!changeFilterValue);
-                onRemoveFilterFromSelection(modelFilters || {});
+                // onRemoveFilterFromSelection(modelFilters || {});
               }}
             />
           </div>
         </div>
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-full">
           {/* 18rem = 288px (https://tailwindcss.com/docs/width) */}
-          <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
-            {filteredModels?.map((model) => {
-              {
-                selectedImage && (
-                  <ImageViewModal
-                    imageUrl={selectedImage.imageUrl}
-                    title={selectedImage.name}
-                    metadata={selectedImage.metadata as MetaData}
-                    onClose={() => setSelectedImage(null)}
-                    onDelete={() => {
-                      deleteModel.mutate(selectedImage.id);
-                      setSelectedImage(null);
-                    }}
-                  />
-                );
-              }
-              return (
-                <ContentCard
-                  key={model.imageUrl}
-                  content={model}
-                  selectedContent={selectedModels}
-                  setSelectedContent={setSelectedModels}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedImage(model);
-                  }}
-                  onDeleteClick={(e) => {
-                    e.stopPropagation();
-                    if (
-                      window.confirm(
-                        "Are you sure you want to delete this model?"
-                      )
-                    ) {
-                      deleteModel.mutate(model.id);
-                    }
-                  }}
-                />
-              );
-            })}
+          <div className="flex flex-row justify-between">
+            <ModelSelectionColumn
+              title="Front Prints"
+              selectedImage={selectedImage}
+              setSelectedImage={setSelectedImage}
+              selectedModelIds={selectedModels}
+              setSelectedModelIds={setSelectedModels}
+              filteredModels={frontPrintModels}
+              onDelete={(id) => {
+                deleteModel.mutate(id);
+                setSelectedImage(null);
+              }}
+            />
+            <div className="w-px bg-border mx-4 my-4 self-stretch" />
+            <ModelSelectionColumn
+              title="Back Prints"
+              selectedImage={selectedImage}
+              setSelectedImage={setSelectedImage}
+              selectedModelIds={selectedModels}
+              setSelectedModelIds={setSelectedModels}
+              filteredModels={backPrintModels}
+              onDelete={(id) => {
+                deleteModel.mutate(id);
+                setSelectedImage(null);
+              }}
+            />
           </div>
         </ScrollArea>
         {selectedImage && (

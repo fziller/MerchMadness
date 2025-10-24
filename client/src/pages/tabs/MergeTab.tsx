@@ -25,6 +25,17 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
       const isFront = shirt.imageUrl.includes("_front");
       const isBack = shirt.imageUrl.includes("_back");
 
+      console.log("shirt", models);
+
+      if (!models || models.length === 0) {
+        toast({
+          title: "Error",
+          description:
+            "Could not find a matching model. Make sure to select the right color or upload a new model.",
+        });
+        continue; // weiter zum næchsten Shirt
+      }
+
       const matchingModels = models
         ?.filter(
           (model) =>

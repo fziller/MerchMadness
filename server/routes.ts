@@ -72,7 +72,7 @@ export function registerRoutes(app: Express): Server {
           return res.status(400).send("No image file uploaded");
         }
 
-        const { resultName, direction, color } = req.body;
+        const { resultName, direction, color, type } = req.body;
 
         const documentUrl = `/uploads/${req.files.modelFile[0].filename}`;
         const resultFileName = `model_img_${resultName}.jpg`;
@@ -93,6 +93,7 @@ export function registerRoutes(app: Express): Server {
             documentUrl,
             color,
             direction,
+            type,
             automationUrl: `/uploads/${req.files?.automationFile?.[0].filename}`,
             automationName:
               req.files?.automationFile?.[0].originalname.split(".")[0],
@@ -121,6 +122,7 @@ export function registerRoutes(app: Express): Server {
 
       // Delete the image file
       try {
+        console.log("Deleting image url", model.imageUrl);
         await fs.promises.unlink(join(__dirname, "public", model.imageUrl));
       } catch (err) {
         console.error("Error deleting file:", err);
@@ -129,6 +131,7 @@ export function registerRoutes(app: Express): Server {
 
       // Delete the document file
       try {
+        console.log("Deleting document url", model.documentUrl);
         await fs.promises.unlink(join(__dirname, "public", model.documentUrl));
       } catch (err) {
         console.error("Error deleting file:", err);
@@ -137,6 +140,7 @@ export function registerRoutes(app: Express): Server {
 
       // Delete the automation file
       try {
+        console.log("Deleting automation url", model.automationUrl);
         model.automationUrl &&
           (await fs.promises.unlink(
             join(__dirname, "public", model.automationUrl)
@@ -169,7 +173,8 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/shirts", upload.single("image"), async (req, res) => {
     try {
-      const { name } = req.body;
+      const { name, color } = req.body;
+      console.log("req.body", req.body);
       if (!req.file) {
         return res.status(400).send("No image file uploaded");
       }
@@ -184,6 +189,7 @@ export function registerRoutes(app: Express): Server {
           name,
           imageUrl,
           metadata,
+          color,
         })
         .returning();
 
@@ -255,7 +261,7 @@ export function registerRoutes(app: Express): Server {
           shirtFileUrl: shirt.imageUrl,
           actionName: model.automationName,
           layerName: "Longsleeve", // <- vormals Bug via getenv
-          actionSetName: "Standardaktionen", // Will be added to the action name
+          actionSetName: "Default Actions", // Will be added to the action name
         });
       } catch (e) {
         console.error("Script execution error:", e);

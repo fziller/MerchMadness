@@ -23,7 +23,7 @@ const useCombination = () => {
       });
 
       if (!response.ok) {
-        throw new Error(await response.text());
+        // throw new Error(await response.text());
       }
     },
     onSuccess: () => {

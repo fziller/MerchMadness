@@ -6,9 +6,8 @@ const useShirts = () => {
   const queryClient = useQueryClient();
 
   const deleteSingleShirt = useMutation({
-    mutationFn: deleteShirt,
+    mutationFn: (id: number) => deleteShirt(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shirts"] });
       toast({
         title: "Shirt deleted successfully!",
         description: "",
@@ -20,15 +19,20 @@ const useShirts = () => {
         description: err.message,
       });
     },
+    onSettled: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/shirts"] });
+    },
   });
 
   const uploadShirt = useMutation({
     mutationFn: async ({
       formData,
       name,
+      color,
     }: {
       formData: FormData;
       name: string;
+      color: string;
       onClose?: () => void;
     }) => {
       const form = new FormData();
@@ -40,6 +44,7 @@ const useShirts = () => {
         }
       });
       form.append("name", name ?? "");
+      form.append("color", color ?? "");
 
       const response = await fetch(`/api/shirts`, {
         method: "POST",

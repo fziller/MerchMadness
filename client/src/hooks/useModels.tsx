@@ -48,6 +48,9 @@ const useModels = () => {
         description: error.message,
       });
     },
+    onSettled: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/models"] });
+    },
   });
 
   const deleteModel = useMutation({
@@ -62,7 +65,6 @@ const useModels = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/models"] });
       toast({
         title: "Success",
         description: "Model deleted successfully",
@@ -74,6 +76,9 @@ const useModels = () => {
         title: "Error",
         description: error.message,
       });
+    },
+    onSettled: (data) => {
+      queryClient.refetchQueries({ queryKey: ["/api/models"] });
     },
   });
   return { uploadModelDocument, deleteModel };

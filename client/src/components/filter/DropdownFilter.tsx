@@ -15,7 +15,7 @@ export type DropdownFilterProps = {
   label: string;
   showLabel?: boolean;
   className?: string;
-  isError?: boolean;
+  hasError?: string;
 };
 
 export default function DropdownFilter(props: DropdownFilterProps) {
@@ -32,7 +32,7 @@ export default function DropdownFilter(props: DropdownFilterProps) {
           props.onSelectOption(value);
         }}
       >
-        <SelectTrigger className={`${props.isError && `border-red-400`}`}>
+        <SelectTrigger className={`${props.hasError && `border-red-400`}`}>
           <SelectValue
             placeholder={selectedValue ?? "Select a " + props.label + " ..."}
           />
@@ -45,11 +45,7 @@ export default function DropdownFilter(props: DropdownFilterProps) {
           ))}
         </SelectContent>
       </Select>
-      {props.isError && (
-        <div className="text-red-400">
-          Select the matching color for the motiv.
-        </div>
-      )}
+      {props.hasError && <div className="text-red-400">{props.hasError}</div>}
     </div>
   );
 }

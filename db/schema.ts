@@ -14,7 +14,8 @@ export const users = sqliteTable("users", {
 
 export const models = sqliteTable("models", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  direction: text("direction").notNull(),
+  direction: text("direction").notNull(), // front or back
+  type: text("type").notNull(), // longsleeve or shortsleeve
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
   documentUrl: text("document_url").notNull(),
@@ -34,6 +35,7 @@ export const shirts = sqliteTable("shirts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   imageUrl: text("image_url").notNull(),
+  color: text("color").notNull(),
   metadata: text("metadata", { mode: "json" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
