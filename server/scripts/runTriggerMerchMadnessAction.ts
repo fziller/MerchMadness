@@ -55,7 +55,7 @@ function writeJsx(params: {
     resultFileAbs,
     actionName,
     layerName,
-    actionSetName = "Standardaktionen",
+    actionSetName = "Default Actions",
     destJsxPath,
   } = params;
   const esc = (p: string) => p.replace(/\\/g, "\\\\"); // ExtendScript braucht \\
@@ -69,6 +69,63 @@ function deleteActions(setName) {
   var desc = new ActionDescriptor();
   desc.putReference(stringIDToTypeID("null"), ref);
   try { executeAction(stringIDToTypeID("delete"), desc, DialogModes.NO); } catch (e) {}
+}
+
+// Helper-Funktionen vor dem try/catch einfügen (oder oben im File)
+function findActionSetForAction(actionName) {
+  var sidActionSet = stringIDToTypeID("actionSet");
+  var sidAction = stringIDToTypeID("action");
+  var sidName = stringIDToTypeID("name");
+  var sidNumberOfChildren = stringIDToTypeID("numberOfChildren");
+
+  var i = 1;
+  while (true) {
+    var setRef = new ActionReference();
+    setRef.putIndex(sidActionSet, i);
+
+    var setDesc;
+    try {
+      setDesc = executeActionGet(setRef);
+    } catch (e) {
+      break;
+    }
+
+    var setName = setDesc.getString(sidName);
+    var actionCount = setDesc.getInteger(sidNumberOfChildren);
+
+    for (var j = 1; j <= actionCount; j++) {
+      var actRef = new ActionReference();
+      actRef.putIndex(sidAction, j);
+      actRef.putIndex(sidActionSet, i);
+
+      var actDesc = executeActionGet(actRef);
+      var actName = actDesc.getString(sidName);
+
+      if (actName === actionName) {
+        return setName;
+      }
+    }
+
+    i++;
+  }
+
+  return null;
+}
+
+function runActionByName(actionName, preferredSetName) {
+  if (preferredSetName && preferredSetName.length) {
+    try {
+      app.doAction(actionName, preferredSetName);
+      return;
+    } catch (e) {}
+  }
+
+  var detectedSetName = findActionSetForAction(actionName);
+  if (!detectedSetName) {
+    throw new Error("Could not find any action set containing action: " + actionName);
+  }
+
+  app.doAction(actionName, detectedSetName);
 }
 
 var debugStep = 1;
@@ -116,7 +173,7 @@ try {
 
   // 5) Action ausführen (Name, Set)
   debugStep = 5;
-  app.doAction("${actionName}", "${actionSetName}");
+  runActionByName("${actionName}", "${actionSetName}");
 
   // 6) zurück zum Modelfile (falls Action ein neues Dok geöffnet hat)
   debugStep = 6;
@@ -134,7 +191,7 @@ try {
   app.activeDocument.saveAs(file, options, true, Extension.LOWERCASE);
 
 } catch (e) {
-  // alert("Error on step " + debugStep + ": " + e.message);
+  alert("Error on step " + debugStep + ": " + e.message);
 } finally {
   deleteActions("${actionSetName}");
 }
@@ -143,9 +200,9 @@ try {
   fs.writeFileSync(destJsxPath, jsx, "utf8");
 }
 
-async function runMac(jsxPath: string, psAppName = "Adobe Photoshop 2025") {
+async function runMac(jsxPath: string) {
   const script = [
-    `tell application "${psAppName}"`,
+    `tell application id "com.adobe.Photoshop"`,
     "  activate",
     `  do javascript of file "${jsxPath}"`,
     "end tell",
@@ -206,10 +263,9 @@ export async function runTriggerMerchMadnessAction(params: {
     shirtFileUrl,
     actionName,
     layerName = "Longsleeve",
-    actionSetName = "Standardaktionen",
+    actionSetName = "Default Actions",
     projectRoot = process.cwd(),
     timeoutMs = 10_000,
-    photoshopAppNameMac = "Adobe Photoshop 2025",
   } = params;
 
   const publicDir = path.resolve(projectRoot, "public");
@@ -241,7 +297,7 @@ export async function runTriggerMerchMadnessAction(params: {
   });
 
   if (process.platform === "darwin") {
-    await runMac(jsxPath, photoshopAppNameMac);
+    await runMac(jsxPath);
   } else if (process.platform === "win32") {
     try {
       await runWinViaPowerShell(jsxPath);

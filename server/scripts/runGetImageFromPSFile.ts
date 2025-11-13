@@ -72,7 +72,7 @@ try {
 }
 
 async function runMac(jsxPath: string) {
-  const psApp = "Adobe Photoshop 2025";
+  const psApp = "Adobe Photoshop 2026";
   // osascript AppleScript inline
   const script = [
     'tell application "' + psApp + '"',

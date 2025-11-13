@@ -82,7 +82,7 @@ export function registerRoutes(app: Express): Server {
           await runGetImageFromPSFile({ resultFileName, documentUrl });
         } catch (e) {
           console.error("Script execution error:", e);
-          return res.status(500).send("Error processing image");
+          return res.status(500).send("Script execution error: " + e);
         }
 
         const [newModel] = await db
@@ -249,10 +249,6 @@ export function registerRoutes(app: Express): Server {
       const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
 
-      // const actionName = shirt.imageUrl.includes("_front")
-      //   ? "250402_Impericon_Frontprint_FarbbereichSchwarz"
-      //   : "250402_Impericon_Backprint_FarbbereichSchwarz";
-
       try {
         await runTriggerMerchMadnessAction({
           actionUrl: model.automationUrl,
@@ -261,7 +257,7 @@ export function registerRoutes(app: Express): Server {
           shirtFileUrl: shirt.imageUrl,
           actionName: model.automationName,
           layerName: "Longsleeve", // <- vormals Bug via getenv
-          actionSetName: "Standardaktionen", // Will be added to the action name
+          actionSetName: "Default Actions", // Will be added to the action name
         });
       } catch (e) {
         console.error("Script execution error:", e);
