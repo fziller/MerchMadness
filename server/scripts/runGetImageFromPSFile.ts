@@ -72,10 +72,9 @@ try {
 }
 
 async function runMac(jsxPath: string) {
-  const psApp = "Adobe Photoshop 2026";
   // osascript AppleScript inline
   const script = [
-    'tell application "' + psApp + '"',
+    'tell application id "com.adobe.Photoshop"',
     "  activate",
     '  do javascript of file "' + jsxPath + '"',
     "end tell",

@@ -25,15 +25,13 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
       const isFront = shirt.imageUrl.includes("_front");
       const isBack = shirt.imageUrl.includes("_back");
 
-      console.log("shirt", models);
-
       if (!models || models.length === 0) {
         toast({
           title: "Error",
           description:
             "Could not find a matching model. Make sure to select the right color or upload a new model.",
         });
-        continue; // weiter zum næchsten Shirt
+        continue; // Go on to next shirt
       }
 
       const matchingModels = models
@@ -49,7 +47,7 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
           description:
             "Could not find a matching model. Make sure to select the right color or upload a new model.",
         });
-        continue; // weiter zum nächsten Shirt
+        continue; // Go on to next shirt
       }
 
       for (const model of matchingModels) {
@@ -57,7 +55,7 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
           await postCombination.mutateAsync({ model, shirt, color });
         } catch (err) {
           toast({
-            title: "Fehler beim Kombinieren",
+            title: "Error combining images",
             description: `Shirt ${shirt.name ?? shirt.id} und Model ${
               model.name ?? model.id
             }`,

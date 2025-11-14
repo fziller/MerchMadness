@@ -14,9 +14,10 @@ import fs from "fs";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { nanoid } from "nanoid";
-import { dirname, join } from "path";
+import path, { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { setupAuth } from "./auth";
+import { getAutomationNameFromAtn } from "./scripts/runGetAutomationNameFromAtn";
 import { runGetImageFromPSFile } from "./scripts/runGetImageFromPSFile";
 import { runTriggerMerchMadnessAction } from "./scripts/runTriggerMerchMadnessAction";
 
@@ -85,6 +86,37 @@ export function registerRoutes(app: Express): Server {
           return res.status(500).send("Script execution error: " + e);
         }
 
+        const automationFile = (req.files as any).automationFile?.[0];
+
+        // We want to know the automation name from the automation file.
+        // Therefore, we import the atn, inspect the changes done on all action sets and
+        // return the first action name which we can see.
+        let automationUrl: string | null = null;
+        let automationName: string | null = null;
+
+        if (automationFile) {
+          automationUrl = `/uploads/${automationFile.filename}`;
+
+          // Need to be public so it is properly supported on production build.
+          const atnFileAbs = path.join(
+            process.cwd(),
+            "public",
+            "uploads",
+            automationFile.filename
+          );
+
+          try {
+            automationName = await getAutomationNameFromAtn({
+              atnFileAbs,
+              projectRoot: process.cwd(),
+            });
+          } catch (e) {
+            console.error("Failed to inspect ATN:", e);
+            // Fallback to file name - this will be useless on production
+            automationName = automationFile.originalname.split(".")[0];
+          }
+        }
+
         const [newModel] = await db
           .insert(models)
           .values({
@@ -94,9 +126,8 @@ export function registerRoutes(app: Express): Server {
             color,
             direction,
             type,
-            automationUrl: `/uploads/${req.files?.automationFile?.[0].filename}`,
-            automationName:
-              req.files?.automationFile?.[0].originalname.split(".")[0],
+            automationUrl,
+            automationName,
           })
           .returning();
         res.json(newModel);
@@ -248,6 +279,8 @@ export function registerRoutes(app: Express): Server {
     try {
       const { model, shirt }: { model: Model; shirt: Shirt } = req.body;
       const resultFileName = `result_${model.id}_${shirt.id}_${nanoid(8)}.jpg`;
+
+      console.log("req.body", model, shirt);
 
       try {
         await runTriggerMerchMadnessAction({
