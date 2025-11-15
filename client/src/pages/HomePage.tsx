@@ -5,6 +5,7 @@ import {
   TagShirtSize,
 } from "@/components/filter/FilterEnums";
 import FilterPanel from "@/components/FilterPanel";
+import LogModal from "@/components/LogModal";
 import ModelSelection from "@/components/ModelSelection";
 import ModelSelectionFilterPanel from "@/components/ModelSelectionFilterPanel";
 import ModelUploadModal from "@/components/ModelUploadModal";
@@ -14,17 +15,18 @@ import { ModelFilterProvider } from "@/context/ModelFilterContext";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import { ShirtActionType, useShirtFilter } from "@/hooks/useShirtFilter";
-import type { Model, Shirt } from "@db/schema";
+import type { Model } from "@db/schema";
 import { useState } from "react";
 
 export default function HomePage() {
   const { user, logout } = useUser();
   const { toast } = useToast();
   const [selectedModels, setSelectedModels] = useState<Model[]>([]);
-  const [selectedShirts, setSelectedShirts] = useState<Shirt[] | null>(null);
   const [showModelFilters, setShowModelFilters] = useState(true);
   const [showShirtFilters, setShowShirtFilters] = useState(false);
   const [showUserManagementModal, setShowUserManagementModal] = useState(false);
+  const [showModelLogs, setShowModelLogs] = useState(false);
+  const [showMergeLogs, setShowMergeLogs] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState<
     "model" | "shirt" | null
   >(null);
@@ -177,6 +179,21 @@ export default function HomePage() {
                     >
                       User Management
                     </Button>
+
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => setShowModelLogs(true)}
+                    >
+                      Logs - Model import
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => setShowMergeLogs(true)}
+                    >
+                      Logs - Image merge
+                    </Button>
                   </>
                 </div>
               </div>
@@ -192,6 +209,12 @@ export default function HomePage() {
           <UserManagementModal
             onClose={() => setShowUserManagementModal(false)}
           />
+        )}
+        {showModelLogs && (
+          <LogModal type={"model"} onClose={() => setShowModelLogs(false)} />
+        )}
+        {showMergeLogs && (
+          <LogModal type={"merge"} onClose={() => setShowMergeLogs(false)} />
         )}
       </div>
     </ModelFilterProvider>

@@ -369,6 +369,70 @@ export function registerRoutes(app: Express): Server {
     res.json(user);
   });
 
+  app.get("/api/logs/inspect", async (req, res) => {
+    const logPath = path.join(process.cwd(), "logs/photoshop_inspect.log");
+    const MAX_BYTES = 1024 * 1024; // 1 MB Tail
+
+    try {
+      const stat = await fs.promises.stat(logPath);
+      const size = stat.size;
+
+      const start = size > MAX_BYTES ? size - MAX_BYTES : 0;
+
+      res.type("text/plain");
+
+      const stream = fs.createReadStream(logPath, { start });
+
+      stream.on("error", (err) => {
+        console.error("Error reading log file:", err);
+        if (!res.headersSent) {
+          res.status(500).end("Error reading log file");
+        }
+      });
+
+      stream.pipe(res);
+    } catch (e: any) {
+      if (e?.code === "ENOENT") {
+        res.status(404).send("// no logfile yet");
+      } else {
+        console.error("Error in /api/logs/inspect:", e);
+        res.status(500).send("// error reading logfile");
+      }
+    }
+  });
+
+  app.get("/api/logs/merge", async (req, res) => {
+    const logPath = path.join(process.cwd(), "logs/photoshop_render.log");
+    const MAX_BYTES = 1024 * 1024; // 1 MB Tail
+
+    try {
+      const stat = await fs.promises.stat(logPath);
+      const size = stat.size;
+
+      const start = size > MAX_BYTES ? size - MAX_BYTES : 0;
+
+      res.type("text/plain");
+
+      const stream = fs.createReadStream(logPath, { start });
+
+      stream.on("error", (err) => {
+        console.error("Error reading log file:", err);
+        if (!res.headersSent) {
+          res.status(500).end("Error reading log file");
+        }
+      });
+
+      stream.pipe(res);
+    } catch (e: any) {
+      if (e?.code === "ENOENT") {
+        res.status(404).send("// no logfile yet");
+      } else {
+        console.error("Error in /api/logs/merge:", e);
+        res.status(500).send("// error reading logfile");
+      }
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

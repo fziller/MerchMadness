@@ -43,7 +43,7 @@ The application will be available at `http://localhost:4999`
 
 The SQLite database file (`database.db`) will be automatically created in the project root directory on first run.
 
-## TroubleShooting
+## Troubleshooting
 
 - It might be necessary to delete `database.db` and let the app create a new one from scratch.
 
@@ -98,6 +98,8 @@ You can log in with either account to access the application. Admin users have a
 - Select the model
 - Merge image and model
 - Download merged images
+
+- In case of any issues, make sure to share the logs available in the Admin panel to the developer.
 
 ## Database Schema
 
