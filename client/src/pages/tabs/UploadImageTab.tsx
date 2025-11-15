@@ -7,26 +7,57 @@ import WizardShirtImageColumn from "@/components/WizardShirtImageColumn";
 import useShirts from "@/hooks/useShirts";
 import { Shirt } from "@db/schema";
 import { Trash } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface UploadImageTabProps {
   shirts?: Shirt[];
+  selectedShirts: number[];
+  setSelectedShirts: React.Dispatch<React.SetStateAction<number[]>>;
   selectedColor: string | undefined;
   setSelectedColor: (color: string | undefined) => void;
 }
 
 const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
-  const { shirts, selectedColor, setSelectedColor } = props;
+  const {
+    shirts,
+    selectedColor,
+    setSelectedColor,
+    selectedShirts,
+    setSelectedShirts,
+  } = props;
 
   // states
   const [backShirts, setBackShirts] = useState<Shirt[]>([]);
   const [frontShirts, setFrontShirts] = useState<Shirt[]>([]);
-  const [otherSirts, setOtherShirts] = useState<Shirt[]>([]);
+  const [otherShirts, setOtherShirts] = useState<Shirt[]>([]);
 
   // hooks
   const { uploadShirt, deleteSingleShirt } = useShirts();
 
-  console.log("shirts", shirts);
+  const countSelectedInGroup = (group: Shirt[], selectedIds: number[]) =>
+    group.filter((shirt) => selectedIds.includes(shirt.id)).length;
+
+  // memos
+  const frontPrintTitle = useMemo(() => {
+    const total = frontShirts.length;
+    const selectedCount = countSelectedInGroup(frontShirts, selectedShirts);
+
+    return `Front Print (${selectedCount}/${total} selected)`;
+  }, [frontShirts, selectedShirts]);
+
+  const backPrintTitle = useMemo(() => {
+    const total = backShirts.length;
+    const selectedCount = countSelectedInGroup(backShirts, selectedShirts);
+
+    return `Back Print (${selectedCount}/${total} selected)`;
+  }, [backShirts, selectedShirts]);
+
+  const otherPrintTitle = useMemo(() => {
+    const total = otherShirts.length;
+    const selectedCount = countSelectedInGroup(otherShirts, selectedShirts);
+
+    return `Other Prints (${selectedCount}/${total} selected)`;
+  }, [otherShirts, selectedShirts]);
 
   useEffect(() => {
     if (shirts && shirts?.length > 0) {
@@ -54,8 +85,6 @@ const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
       setOtherShirts([]);
     }
   }, [shirts, selectedColor]);
-
-  console.log(selectedColor ? [selectedColor] : []);
 
   return (
     <div className="justify-center items-center">
@@ -131,8 +160,11 @@ const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
             <div className="flex flex-row justify-between items-start py-2">
               {frontShirts && frontShirts?.length > 0 && (
                 <WizardShirtImageColumn
-                  title="Front Print"
+                  title={frontPrintTitle}
                   shirts={frontShirts}
+                  showSelectAll
+                  setSelectedContent={setSelectedShirts}
+                  selectedContent={selectedShirts}
                   onDelete={deleteSingleShirt.mutate}
                   badges={selectedColor ? [selectedColor] : []}
                 />
@@ -142,21 +174,26 @@ const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
               )}
               {backShirts && backShirts?.length > 0 && (
                 <WizardShirtImageColumn
-                  title="Back Print"
+                  title={backPrintTitle}
                   shirts={backShirts}
+                  showSelectAll
+                  setSelectedContent={setSelectedShirts}
+                  selectedContent={selectedShirts}
                   onDelete={deleteSingleShirt.mutate}
                   badges={selectedColor ? [selectedColor] : []}
                 />
               )}
-              {otherSirts &&
-                otherSirts?.length > 0 &&
+              {otherShirts &&
+                otherShirts?.length > 0 &&
                 (backShirts || frontShirts) && (
                   <div className="w-px bg-border mx-4 my-4 self-stretch" />
                 )}
-              {otherSirts && otherSirts?.length > 0 && (
+              {otherShirts && otherShirts?.length > 0 && (
                 <WizardShirtImageColumn
-                  title="unknown Print"
-                  shirts={otherSirts}
+                  title={otherPrintTitle}
+                  setSelectedContent={setSelectedShirts}
+                  selectedContent={selectedShirts}
+                  shirts={otherShirts}
                   onDelete={deleteSingleShirt.mutate}
                 />
               )}

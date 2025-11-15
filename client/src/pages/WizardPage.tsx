@@ -9,7 +9,6 @@ import "react-form-wizard-component/dist/style.css";
 import MergeTab from "./tabs/MergeTab";
 import ModelSelectTab from "./tabs/ModelSelectTab";
 import UploadImageTab from "./tabs/UploadImageTab";
-import { Button } from "@/components/ui/button";
 
 export default function WizardPage() {
   // states
@@ -20,6 +19,7 @@ export default function WizardPage() {
     "longsleeve" | "shortsleeve" | undefined
   >(undefined);
   const [selectedModels, setSelectedModels] = useState<number[]>([]);
+  const [selectedShirts, setSelectedShirts] = useState<number[]>([]);
   const [canGoNextToModelUpload, setCanGoNextToModelUpload] = useState(false);
   const [canGoNextToMerge, setCanGoNextToMerge] = useState(false);
 
@@ -65,13 +65,6 @@ export default function WizardPage() {
     );
   };
 
-  console.log("selectedModels", selectedModels);
-  console.log(
-    "models per filter",
-    models
-      ?.filter((m) => m.color === selectedColor)
-      ?.filter((m) => m.type === selectedType)
-  );
   return (
     <div className="space-y-2 items-center justify-center flex-row">
       <FormWizard
@@ -88,6 +81,8 @@ export default function WizardPage() {
         >
           <UploadImageTab
             shirts={shirts}
+            selectedShirts={selectedShirts}
+            setSelectedShirts={setSelectedShirts}
             selectedColor={selectedColor}
             setSelectedColor={setSelectedColor}
           />
@@ -122,7 +117,13 @@ export default function WizardPage() {
                     (model) => models?.find((m) => m.id === model) as Model
                   )
             }
-            shirts={shirts}
+            shirts={
+              selectedShirts.length === 0
+                ? shirts
+                : selectedShirts.map(
+                    (s) => shirts?.find((m) => m.id === s) as Shirt
+                  )
+            }
             color={selectedColor}
             combinedImages={combinedImages}
           />

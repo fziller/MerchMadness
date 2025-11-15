@@ -37,16 +37,11 @@ export default function ModelSelection({
   const [frontPrintModels, setFrontPrintModels] = useState<Model[]>([]);
   const [backPrintModels, setBackPrintModels] = useState<Model[]>([]);
 
-  console.log("selectedModels", models);
-  console.log("modelfilters", modelFilters);
-
   // effects
   // Effect to show the updated list of models in the modelselection as well as changing the selected models.
   useEffect(() => {
     if (models === undefined) return;
     // Check first if we have models for frontPrint.
-    console.log("MODELS", models);
-    console.log("MODEL FILTER", modelFilters);
     const frontModels = models.filter((model) => model.direction === "front");
     if (frontModels.length > 0) {
       const colorFilteredModels = frontModels.filter((m) => {

@@ -35,16 +35,9 @@ const ModelSelectTab: React.FC<ModelSelectTabProps> = (props) => {
       const frontPrints = models
         .filter((model) => model.direction === "front")
         ?.filter((model) => {
-          console.log("model.color", model.color, selectedColor);
           return model.color === selectedColor;
         })
         ?.filter((model) => {
-          console.log(
-            "model.type",
-            model.type,
-            selectedType,
-            model.type === selectedType
-          );
           return model.type === selectedType;
         });
       const backPrints = models
@@ -136,16 +129,6 @@ const ModelSelectTab: React.FC<ModelSelectTabProps> = (props) => {
                 />
               )}
             </div>
-            {/* <div className="grid grid-cols-[repeat(auto-fill,18rem)] gap-2">
-              {models &&
-                models.map((model) => (
-                  <ContentCard
-                    content={model}
-                    selectedContent={selectedModels}
-                    setSelectedContent={setSelectedModels}
-                  />
-                ))}
-            </div> */}
           </ScrollArea>
         ) : (
           <div className="flex items-center justify-center my-20 flex-col">

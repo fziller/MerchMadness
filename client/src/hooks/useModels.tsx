@@ -30,7 +30,6 @@ const useModels = () => {
         body: form,
         credentials: "include",
       });
-      console.log("response", response);
       if (!response.ok) {
         throw new Error(await response.text());
       }

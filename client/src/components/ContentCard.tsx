@@ -43,7 +43,7 @@ const ContentCard: React.FC<ContentCardProps> = (props) => {
   return (
     <div
       key={content.id}
-      className={`relative cursor-pointer rounded-lg overflow-hidden border-2 group p-2 ${
+      className={`relative cursor-pointer rounded-lg overflow-hidden border-2 group p-2 m-2 ${
         selectedContent?.includes(content.id)
           ? "border-primary"
           : "border-transparent"
