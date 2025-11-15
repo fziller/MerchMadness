@@ -44,9 +44,10 @@ function writeJsx(params: {
   modelFileAbs: string;
   resultFileAbs: string;
   actionName: string;
-  layerName: string; // <- injizieren, nicht getenv
-  actionSetName?: string; // default "Standardaktionen"
+  layerName: string;
+  actionSetName?: string;
   destJsxPath: string;
+  logFileAbs: string;
 }) {
   const {
     actionFileAbs,
@@ -57,21 +58,69 @@ function writeJsx(params: {
     layerName,
     actionSetName = "Default Actions",
     destJsxPath,
+    logFileAbs,
   } = params;
+
   const esc = (p: string) => p.replace(/\\/g, "\\\\"); // ExtendScript braucht \\
 
   const jsx = `
 // #target photoshop
 
+// Konfiguration aus Node injiziert
+var ACTION_NAME = "${actionName}";
+var ACTION_SET_NAME = "${actionSetName}";
+var TARGET_LAYER_NAME = "${layerName}";
+var RESULT_FILE_PATH = "${esc(resultFileAbs)}";
+var ACTION_FILE_PATH = "${esc(actionFileAbs)}";
+var SHIRT_FILE_PATH = "${esc(shirtFileAbs)}";
+var MODEL_FILE_PATH = "${esc(modelFileAbs)}";
+var LOG_FILE_PATH = "${esc(logFileAbs)}";
+
+// ---- Logging Helpers ----
+
+var logFile = new File(LOG_FILE_PATH);
+
+function nowIso() {
+  var d = new Date();
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  return d.getFullYear() + "-" +
+         pad(d.getMonth() + 1) + "-" +
+         pad(d.getDate()) + "T" +
+         pad(d.getHours()) + ":" +
+         pad(d.getMinutes()) + ":" +
+         pad(d.getSeconds());
+}
+
+function log(msg) {
+  try {
+    logFile.open("a");
+    logFile.writeln(nowIso() + " | " + msg);
+    logFile.close();
+  } catch (e) {
+    // ignore logging errors
+  }
+}
+
+// ---- Action Helpers ----
+
 function deleteActions(setName) {
+  if (!setName) {
+    log("deleteActions: no setName provided, skipping");
+    return;
+  }
+  log("deleteActions: attempting to delete set '" + setName + "'");
   var ref = new ActionReference();
   ref.putName(stringIDToTypeID("actionSet"), setName);
   var desc = new ActionDescriptor();
   desc.putReference(stringIDToTypeID("null"), ref);
-  try { executeAction(stringIDToTypeID("delete"), desc, DialogModes.NO); } catch (e) {}
+  try {
+    executeAction(stringIDToTypeID("delete"), desc, DialogModes.NO);
+    log("deleteActions: set '" + setName + "' deleted");
+  } catch (e) {
+    log("deleteActions: failed to delete set '" + setName + "': " + e.message);
+  }
 }
 
-// Helper-Funktionen vor dem try/catch einfügen (oder oben im File)
 function findActionSetForAction(actionName) {
   var sidActionSet = stringIDToTypeID("actionSet");
   var sidAction = stringIDToTypeID("action");
@@ -87,7 +136,7 @@ function findActionSetForAction(actionName) {
     try {
       setDesc = executeActionGet(setRef);
     } catch (e) {
-      break;
+      break; // keine weiteren Sets
     }
 
     var setName = setDesc.getString(sidName);
@@ -102,6 +151,7 @@ function findActionSetForAction(actionName) {
       var actName = actDesc.getString(sidName);
 
       if (actName === actionName) {
+        log("findActionSetForAction: found action '" + actionName + "' in set '" + setName + "'");
         return setName;
       }
     }
@@ -109,102 +159,167 @@ function findActionSetForAction(actionName) {
     i++;
   }
 
+  log("findActionSetForAction: no set found for action '" + actionName + "'");
   return null;
 }
 
-function runActionByName(actionName, preferredSetName) {
-  if (preferredSetName && preferredSetName.length) {
-    try {
-      app.doAction(actionName, preferredSetName);
-      return;
-    } catch (e) {}
+function describeDocState(doc) {
+  var s = "";
+  try {
+    s += "doc=" + doc.name + "; ";
+    s += "layers=" + doc.layers.length + "; ";
+    s += "activeLayer=" + doc.activeLayer.name + "; ";
+  } catch (e) {
+    s += "describeDocState error: " + e.message;
   }
+  return s;
+}
+
+function runActionByName(actionName, preferredSetName) {
+  log("runActionByName: actionName=" + actionName + ", preferredSetName=" + preferredSetName);
+
+  // if (preferredSetName && preferredSetName.length) {
+  //   try {
+  //     log("runActionByName: trying preferred set '" + preferredSetName + "'");
+  //     app.doAction(actionName, preferredSetName);
+  //     log("runActionByName: action executed successfully with preferred set");
+  //     return;
+  //   } catch (e) {
+  //     log("runActionByName: preferred set failed: " + e.message + " (#" + e.number + ")");
+  //   }
+  // }
 
   var detectedSetName = findActionSetForAction(actionName);
   if (!detectedSetName) {
-    throw new Error("Could not find any action set containing action: " + actionName);
+    var msg = "Could not find any action set containing action: " + actionName;
+    log("runActionByName: " + msg);
+    throw new Error(msg);
   }
 
-  app.doAction(actionName, detectedSetName);
+  try {
+    log("runActionByName: trying detected set '" + detectedSetName + "'");
+    app.doAction(actionName, detectedSetName);
+    log("runActionByName: action executed successfully with detected set '" + detectedSetName + "'");
+  } catch (e) {
+    var ctx = "";
+    try {
+      ctx = describeDocState(app.activeDocument);
+    } catch (_e) {}
+    log("runActionByName: ERROR in app.doAction: " + e.message + " (#" + e.number + "); ctx=" + ctx);
+    throw e;
+  }
 }
 
+// ---- Layer Helper ----
+
+function selectLayerByName(doc, name) {
+  function walk(layerSetOrDoc) {
+    var L = layerSetOrDoc.layers || layerSetOrDoc.artLayers;
+    for (var i = 0; i < L.length; i++) {
+      var ly = L[i];
+      if (ly.name === name) {
+        doc.activeLayer = ly;
+        return true;
+      }
+      if (ly.typename === "LayerSet") {
+        if (walk(ly)) return true;
+      }
+    }
+    return false;
+  }
+  return walk(doc);
+}
+
+// ---- Main Script ----
+
 var debugStep = 1;
+log("=== MerchMadness run started ===");
+log("ACTION_NAME=" + ACTION_NAME + ", ACTION_SET_NAME=" + ACTION_SET_NAME + ", TARGET_LAYER_NAME=" + TARGET_LAYER_NAME);
+
 try {
+  debugStep = 1;
+  log("Step 1: closing all open documents");
   while (app.documents.length > 0) {
     app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
   }
 
-  // 1) Actions laden
-  app.load(File("${esc(actionFileAbs)}"));
   debugStep = 2;
+  log("Step 2: loading actions from '" + ACTION_FILE_PATH + "'");
+  app.load(File(ACTION_FILE_PATH));
 
-  // 2) Shirt-Bild in Clipboard
-  var shirtImage = File("${esc(shirtFileAbs)}");
+  debugStep = 3;
+  log("Step 3: opening shirt image '" + SHIRT_FILE_PATH + "' and copying to clipboard");
+  var shirtImage = File(SHIRT_FILE_PATH);
   app.open(shirtImage);
   app.activeDocument.selection.selectAll();
   app.activeDocument.selection.copy();
+  log("Step 3: shirt copied to clipboard, state: " + describeDocState(app.activeDocument));
 
-  debugStep = 3;
-
-  // 3) Model-PSB öffnen
-  var modelFile = File("${esc(modelFileAbs)}");
-  open(modelFile);
-
-  // 4) Ziel-Layer aktivieren
   debugStep = 4;
-  var layers = app.activeDocument.layers; // geht auch über .artLayers, aber .layers deckt Gruppen ab
-  function selectLayerByName(doc, name) {
-    // brute force durch alle Ebenen/Unterebenen
-    function walk(layerSetOrDoc) {
-      var L = layerSetOrDoc.layers || layerSetOrDoc.artLayers;
-      for (var i=0; i<L.length; i++) {
-        var ly = L[i];
-        if (ly.name === name) { doc.activeLayer = ly; return true; }
-        if (ly.typename === "LayerSet") { if (walk(ly)) return true; }
-      }
-      return false;
-    }
-    return walk(doc);
-  }
-  if (!selectLayerByName(app.activeDocument, "${layerName}")) {
-    // not fatal: die Action könnte selbst selektieren; aber wir loggen:
-    // alert("Layer not found: ${layerName}");
-  }
-
-  // 5) Action ausführen (Name, Set)
-  debugStep = 5;
-  runActionByName("${actionName}", "${actionSetName}");
-
-  // 6) zurück zum Modelfile (falls Action ein neues Dok geöffnet hat)
-  debugStep = 6;
+  log("Step 4: opening model file '" + MODEL_FILE_PATH + "'");
+  var modelFile = File(MODEL_FILE_PATH);
   open(modelFile);
+  log("Step 4: model opened, state: " + describeDocState(app.activeDocument));
 
-  // 7) Export als JPG
+  debugStep = 5;
+  log("Step 5: selecting target layer '" + TARGET_LAYER_NAME + "'");
+  if (!selectLayerByName(app.activeDocument, TARGET_LAYER_NAME)) {
+    log("Step 5: target layer not found: '" + TARGET_LAYER_NAME + "'. Action may select its own layer.");
+  } else {
+    log("Step 5: target layer selected, state: " + describeDocState(app.activeDocument));
+  }
+
+  debugStep = 6;
+  log("Step 6: executing action '" + ACTION_NAME + "'");
+  log("Step 6: BEFORE action state: " + describeDocState(app.activeDocument));
+  runActionByName(ACTION_NAME, ACTION_SET_NAME);
+  log("Step 6: AFTER action state: " + describeDocState(app.activeDocument));
+
   debugStep = 7;
-  var file = new File("${esc(resultFileAbs)}");
+  log("Step 7: reopening model file (in case action changed focus)");
+  open(modelFile);
+  log("Step 7: model refocused, state: " + describeDocState(app.activeDocument));
+
+  debugStep = 8;
+  log("Step 8: exporting result to '" + RESULT_FILE_PATH + "'");
+  var file = new File(RESULT_FILE_PATH);
   var options = new JPEGSaveOptions();
   options.quality = 12;
   options.embedColorProfile = true;
   options.formatOptions = FormatOptions.OPTIMIZEDBASELINE;
-
-  debugStep = 8;
   app.activeDocument.saveAs(file, options, true, Extension.LOWERCASE);
+  log("Step 8: export finished");
 
 } catch (e) {
+  var extra = "";
+  try {
+    extra = describeDocState(app.activeDocument);
+  } catch (_e) {}
+  log("FATAL ERROR at debugStep " + debugStep + ": " + e.message + " (#" + e.number + "); ctx=" + extra);
   alert("Error on step " + debugStep + ": " + e.message);
 } finally {
-  deleteActions("${actionSetName}");
+  try {
+    var setNameForCleanup = findActionSetForAction(ACTION_NAME) || ACTION_SET_NAME;
+    log("Cleanup: attempting to delete action set '" + setNameForCleanup + "'");
+    deleteActions(setNameForCleanup);
+  } catch (cleanupError) {
+    log("Cleanup: failed to delete action set: " + cleanupError.message);
+  }
+  log("=== MerchMadness run finished ===");
 }
 `;
+
   fs.mkdirSync(path.dirname(destJsxPath), { recursive: true });
   fs.writeFileSync(destJsxPath, jsx, "utf8");
 }
 
 async function runMac(jsxPath: string) {
+  // keep it simple: Photoshop akzeptiert den Pfad direkt
+  const escaped = jsxPath.replace(/"/g, '\\"');
   const script = [
     `tell application id "com.adobe.Photoshop"`,
     "  activate",
-    `  do javascript of file "${jsxPath}"`,
+    `  do javascript of file "${escaped}"`,
     "end tell",
   ].join("\n");
   await spawnPromise("osascript", ["-e", script]);
@@ -245,16 +360,15 @@ app.DoJavaScriptFile(jsx, null, 1);
 }
 
 export async function runTriggerMerchMadnessAction(params: {
-  actionUrl: string; // z.B. /uploads/Impericon_T-shirt_Woman.atn
-  resultFileName: string; // z.B. result_foo.jpg
-  modelDocumentUrl: string; // z.B. /uploads/base.psb
-  shirtFileUrl: string; // z.B. /uploads/print_front.png
-  actionName: string; // z.B. 250402_Impericon_Frontprint_FarbbereichTiefe
-  layerName?: string; // default "Longsleeve"
-  actionSetName?: string; // default "Standardaktionen"
+  actionUrl: string;
+  resultFileName: string;
+  modelDocumentUrl: string;
+  shirtFileUrl: string;
+  actionName: string;
+  layerName?: string;
+  actionSetName?: string;
   projectRoot?: string;
-  timeoutMs?: number; // default 10000
-  photoshopAppNameMac?: string; // default "Adobe Photoshop 2025"
+  timeoutMs?: number;
 }) {
   const {
     actionUrl,
@@ -280,6 +394,12 @@ export async function runTriggerMerchMadnessAction(params: {
 
   fs.mkdirSync(path.dirname(resultFileAbs), { recursive: true });
 
+  // Logs jetzt im Projektordner, nicht /var
+  const logsDir = path.join(projectRoot, "logs");
+  fs.mkdirSync(logsDir, { recursive: true });
+  const logFileAbs = path.join(logsDir, "photoshop_render.log");
+  console.log("[MerchMadness] Photoshop JSX log file:", logFileAbs);
+
   const jsxPath = path.join(
     projectRoot,
     "scripts",
@@ -294,6 +414,7 @@ export async function runTriggerMerchMadnessAction(params: {
     layerName,
     actionSetName,
     destJsxPath: jsxPath,
+    logFileAbs,
   });
 
   if (process.platform === "darwin") {

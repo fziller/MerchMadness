@@ -40,20 +40,22 @@ function spawnPromise(
 
 /**
  * Runs a given JSX file in Photoshop on the current platform.
- * @param {string} jsxPath - The path to the JSX file to run.
- * @param {string} [photoshopBundleIdMac="com.adobe.Photoshop"] - The bundle ID of Photoshop on macOS.
- * @throws {Error} If the platform is not supported.
  */
 async function runPhotoshopJsx(
   jsxPath: string,
   photoshopBundleIdMac = "com.adobe.Photoshop"
 ) {
-  console.log("Run ps automation, jsxPath: ", jsxPath);
+  console.log(
+    "[getAutomationNameFromAtn] Run ps automation, jsxPath:",
+    jsxPath
+  );
+
   if (process.platform === "darwin") {
+    const escaped = jsxPath.replace(/"/g, '\\"');
     const script = [
       `tell application id "${photoshopBundleIdMac}"`,
       "  activate",
-      '  do javascript of file "' + jsxPath + '"',
+      `  do javascript of file "${escaped}"`,
       "end tell",
     ].join("\n");
 
@@ -78,24 +80,68 @@ async function runPhotoshopJsx(
     throw new Error(`Unsupported platform: ${process.platform}`);
   }
 }
+
 function writeInspectAtnJsx(params: {
   atnFileAbs: string;
   destJsxPath: string;
   metaFileAbs: string;
+  logFileAbs: string;
 }) {
-  const { atnFileAbs, destJsxPath, metaFileAbs } = params;
+  const { atnFileAbs, destJsxPath, metaFileAbs, logFileAbs } = params;
 
   const esc = (p: string) => p.replace(/\\/g, "\\\\"); // für ExtendScript
 
   const jsx = `
 // #target photoshop
 
+// --- Konfiguration (aus Node injiziert) ---
+var ATN_FILE_PATH = "${esc(atnFileAbs)}";
+var META_FILE_PATH = "${esc(metaFileAbs)}";
+var LOG_FILE_PATH = "${esc(logFileAbs)}";
+
+// --- Logging ---
+
+var logFile = new File(LOG_FILE_PATH);
+
+function nowIso() {
+  var d = new Date();
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  return d.getFullYear() + "-" +
+         pad(d.getMonth() + 1) + "-" +
+         pad(d.getDate()) + "T" +
+         pad(d.getHours()) + ":" +
+         pad(d.getMinutes()) + ":" +
+         pad(d.getSeconds());
+}
+
+function log(msg) {
+  try {
+    logFile.open("a");
+    logFile.writeln(nowIso() + " | " + msg);
+    logFile.close();
+  } catch (e) {
+    // ignore logging errors
+  }
+}
+
+// --- Action-Helpers ---
+
 function deleteActions(setName) {
+  if (!setName) {
+    log("deleteActions: no setName provided, skipping");
+    return;
+  }
+  log("deleteActions: attempting to delete set '" + setName + "'");
   var ref = new ActionReference();
   ref.putName(stringIDToTypeID("actionSet"), setName);
   var desc = new ActionDescriptor();
   desc.putReference(stringIDToTypeID("null"), ref);
-  try { executeAction(stringIDToTypeID("delete"), desc, DialogModes.NO); } catch (e) {}
+  try {
+    executeAction(stringIDToTypeID("delete"), desc, DialogModes.NO);
+    log("deleteActions: set '" + setName + "' deleted");
+  } catch (e) {
+    log("deleteActions: failed to delete set '" + setName + "': " + e.message);
+  }
 }
 
 function snapshotActions() {
@@ -143,6 +189,7 @@ function snapshotActions() {
   return result;
 }
 
+// Diff der Actions (welche Action-Namen sind neu?)
 function diffSnapshots(before, after) {
   function toMap(list) {
     var map = {};
@@ -182,33 +229,83 @@ function diffSnapshots(before, after) {
   return newlyAdded;
 }
 
+// Welche Action-Sets sind komplett neu hinzugekommen?
+function diffNewSets(before, after) {
+  var beforeNames = {};
+  for (var i = 0; i < before.length; i++) {
+    beforeNames[before[i].setName] = true;
+  }
+  var newSetNames = [];
+  for (var j = 0; j < after.length; j++) {
+    var sName = after[j].setName;
+    if (!beforeNames[sName]) {
+      newSetNames.push(sName);
+    }
+  }
+  return newSetNames;
+}
+
 var debugStep = 1;
+var loadedSetNames = []; // Sets, die durch dieses ATN neu hinzugekommen sind
+
+log("----- NEW ATN INSPECT RUN -----");
+log("=== inspect ATN run started ===");
+log("ATN_FILE_PATH=" + ATN_FILE_PATH);
 
 try {
+  debugStep = 1;
+  log("Step 1: snapshot before");
   var before = snapshotActions();
+  log("Step 1: found " + before.length + " sets before");
+
   debugStep = 2;
+  log("Step 2: load ATN '" + ATN_FILE_PATH + "'");
+  app.load(File(ATN_FILE_PATH));
 
-  app.load(File("${esc(atnFileAbs)}"));
   debugStep = 3;
-
+  log("Step 3: snapshot after");
   var after = snapshotActions();
+  log("Step 3: found " + after.length + " sets after");
+
   var newActions = diffSnapshots(before, after);
+  log("Step 3: newActions length = " + newActions.length);
+
+  loadedSetNames = diffNewSets(before, after);
+  log("Step 3: loadedSetNames = " + loadedSetNames.join(", "));
 
   var firstName = "";
   if (newActions.length > 0) {
     firstName = newActions[0].actionName;
+    log("Using first new actionName: '" + firstName + "'");
+  } else {
+    log("No new actions detected");
   }
 
-  var metaFile = new File("${esc(metaFileAbs)}");
+  var metaFile = new File(META_FILE_PATH);
   metaFile.encoding = "UTF8";
   metaFile.open("w");
   metaFile.write(firstName);
   metaFile.close();
+  log("Meta file written to: " + META_FILE_PATH);
 
 } catch (e) {
+  log("FATAL: Error in inspect ATN at step " + debugStep + ": " + e.message);
   alert("Error in inspect ATN at step " + debugStep + ": " + e.message);
 } finally {
-    deleteActions("Standardaktionen");
+  // Nur die Action-Sets löschen, die durch dieses ATN neu dazugekommen sind
+  try {
+    if (loadedSetNames && loadedSetNames.length > 0) {
+      log("Cleanup: deleting new sets: " + loadedSetNames.join(", "));
+      for (var i = 0; i < loadedSetNames.length; i++) {
+        deleteActions(loadedSetNames[i]);
+      }
+    } else {
+      log("Cleanup: no new sets to delete");
+    }
+  } catch (cleanupError) {
+    log("Cleanup: failed: " + cleanupError.message);
+  }
+  log("=== inspect ATN run finished ===");
 }
 `;
 
@@ -219,14 +316,6 @@ try {
 /**
  * Runs an ATN file and inspects the changes made to Photoshop.
  * Returns the name of the first action added by the ATN file.
- *
- * @param {Object} params - Parameters for the function.
- * @param {string} params.atnFileAbs - The absolute path to the ATN file.
- * @param {string} [params.projectRoot] - The root directory of the project. Defaults to process.cwd().
- * @param {string} [params.photoshopBundleIdMac] - The bundle ID of Photoshop on a Mac. Defaults to "com.adobe.Photoshop".
- * @returns {Promise<string>} The name of the first action added by the ATN file.
- * @throws {Error} If the ATN inspection did not produce a meta file.
- * @throws {Error} If no action name was detected in the ATN file.
  */
 export async function getAutomationNameFromAtn(params: {
   atnFileAbs: string;
@@ -242,26 +331,48 @@ export async function getAutomationNameFromAtn(params: {
   const scriptsDir = path.join(projectRoot, "scripts");
   fs.mkdirSync(scriptsDir, { recursive: true });
 
-  const stamp = Date.now();
-  const jsxPath = path.join(scriptsDir, `inspectAtn_${stamp}.jsx`);
-  const metaFileAbs = path.join(os.tmpdir(), `inspectAtn_${stamp}.txt`);
+  const logsDir = path.join(projectRoot, "logs");
+  fs.mkdirSync(logsDir, { recursive: true });
 
-  console.log("Inspecting ATN file:", jsxPath);
+  const stamp = Date.now();
+  const jsxPath = path.join(scriptsDir, `getAutomationNameFromAtn.jsx`);
+  const metaFileAbs = path.join(os.tmpdir(), `getAutomationNameFromAtn.txt`);
+
+  // Create the logfile
+  const logFileAbs = path.join(logsDir, "photoshop_inspect.log");
+
+  console.log("[getAutomationNameFromAtn] JSX path:", jsxPath);
+  console.log("[getAutomationNameFromAtn] Meta file:", metaFileAbs);
+  console.log("[getAutomationNameFromAtn] Log file:", logFileAbs);
 
   writeInspectAtnJsx({
     atnFileAbs,
     destJsxPath: jsxPath,
     metaFileAbs,
+    logFileAbs,
   });
 
   await runPhotoshopJsx(jsxPath, photoshopBundleIdMac);
 
   if (!fs.existsSync(metaFileAbs)) {
+    console.error(
+      "[getAutomationNameFromAtn] Meta file not found. Check log:",
+      logFileAbs
+    );
     throw new Error("ATN inspection did not produce a meta file");
   }
 
   const content = fs.readFileSync(metaFileAbs, "utf8").trim();
+  console.log(
+    "[getAutomationNameFromAtn] Meta content:",
+    JSON.stringify(content)
+  );
+
   if (!content) {
+    console.error(
+      "[getAutomationNameFromAtn] Meta file is empty. Check log:",
+      logFileAbs
+    );
     throw new Error("No action name detected in ATN file");
   }
 
