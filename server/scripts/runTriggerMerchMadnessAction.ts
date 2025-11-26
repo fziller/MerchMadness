@@ -66,6 +66,8 @@ function writeJsx(params: {
   const jsx = `
 // #target photoshop
 
+app.displayDialogs = DialogModes.NO;
+
 // Konfiguration aus Node injiziert
 var ACTION_NAME = "${actionName}";
 var ACTION_SET_NAME = "${actionSetName}";
@@ -232,80 +234,90 @@ function selectLayerByName(doc, name) {
 
 // ---- Main Script ----
 
-var debugStep = 1;
-log("=== MerchMadness run started ===");
-log("ACTION_NAME=" + ACTION_NAME + ", ACTION_SET_NAME=" + ACTION_SET_NAME + ", TARGET_LAYER_NAME=" + TARGET_LAYER_NAME);
+function main() {
+  var debugStep = 1;
+  log("=== MerchMadness run started ===");
+  log("ACTION_NAME=" + ACTION_NAME + ", ACTION_SET_NAME=" + ACTION_SET_NAME + ", TARGET_LAYER_NAME=" + TARGET_LAYER_NAME);
+
+  try {
+    debugStep = 1;
+    log("Step 1: closing all open documents");
+    while (app.documents.length > 0) {
+      app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+    }
+
+    debugStep = 2;
+    log("Step 2: loading actions from '" + ACTION_FILE_PATH + "'");
+    app.load(File(ACTION_FILE_PATH));
+
+    debugStep = 3;
+    log("Step 3: opening shirt image '" + SHIRT_FILE_PATH + "' and copying to clipboard");
+    var shirtImage = File(SHIRT_FILE_PATH);
+    app.open(shirtImage);
+    app.activeDocument.selection.selectAll();
+    app.activeDocument.selection.copy();
+    log("Step 3: shirt copied to clipboard, state: " + describeDocState(app.activeDocument));
+
+    debugStep = 4;
+    log("Step 4: opening model file '" + MODEL_FILE_PATH + "'");
+    var modelFile = File(MODEL_FILE_PATH);
+    open(modelFile);
+    log("Step 4: model opened, state: " + describeDocState(app.activeDocument));
+
+    debugStep = 5;
+    log("Step 5: selecting target layer '" + TARGET_LAYER_NAME + "'");
+    if (!selectLayerByName(app.activeDocument, TARGET_LAYER_NAME)) {
+      log("Step 5: target layer not found: '" + TARGET_LAYER_NAME + "'. Action may select its own layer.");
+    } else {
+      log("Step 5: target layer selected, state: " + describeDocState(app.activeDocument));
+    }
+
+    debugStep = 6;
+    log("Step 6: executing action '" + ACTION_NAME + "'");
+    log("Step 6: BEFORE action state: " + describeDocState(app.activeDocument));
+    runActionByName(ACTION_NAME, ACTION_SET_NAME);
+    log("Step 6: AFTER action state: " + describeDocState(app.activeDocument));
+
+    debugStep = 7;
+    log("Step 7: reopening model file (in case action changed focus)");
+    open(modelFile);
+    log("Step 7: model refocused, state: " + describeDocState(app.activeDocument));
+
+    debugStep = 8;
+    log("Step 8: exporting result to '" + RESULT_FILE_PATH + "'");
+    var file = new File(RESULT_FILE_PATH);
+    var options = new JPEGSaveOptions();
+    options.quality = 12;
+    options.embedColorProfile = true;
+    options.formatOptions = FormatOptions.OPTIMIZEDBASELINE;
+    app.activeDocument.saveAs(file, options, true, Extension.LOWERCASE);
+    log("Step 8: export finished");
+
+  } catch (e) {
+    var extra = "";
+    try {
+      extra = describeDocState(app.activeDocument);
+    } catch (_e) {}
+    log("FATAL ERROR at debugStep " + debugStep + ": " + e.message + " (#" + e.number + "); ctx=" + extra);
+    // Do not show the alert. Photoshop needs to be able to continue.
+    // alert("Error on step " + debugStep + ": " + e.message);
+  } finally {
+    try {
+      var setNameForCleanup = findActionSetForAction(ACTION_NAME) || ACTION_SET_NAME;
+      log("Cleanup: attempting to delete action set '" + setNameForCleanup + "'");
+      deleteActions(setNameForCleanup);
+    } catch (cleanupError) {
+      log("Cleanup: failed to delete action set: " + cleanupError.message);
+    }
+    log("=== MerchMadness run finished ===");
+  }
+}
 
 try {
-  debugStep = 1;
-  log("Step 1: closing all open documents");
-  while (app.documents.length > 0) {
-    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
-  }
-
-  debugStep = 2;
-  log("Step 2: loading actions from '" + ACTION_FILE_PATH + "'");
-  app.load(File(ACTION_FILE_PATH));
-
-  debugStep = 3;
-  log("Step 3: opening shirt image '" + SHIRT_FILE_PATH + "' and copying to clipboard");
-  var shirtImage = File(SHIRT_FILE_PATH);
-  app.open(shirtImage);
-  app.activeDocument.selection.selectAll();
-  app.activeDocument.selection.copy();
-  log("Step 3: shirt copied to clipboard, state: " + describeDocState(app.activeDocument));
-
-  debugStep = 4;
-  log("Step 4: opening model file '" + MODEL_FILE_PATH + "'");
-  var modelFile = File(MODEL_FILE_PATH);
-  open(modelFile);
-  log("Step 4: model opened, state: " + describeDocState(app.activeDocument));
-
-  debugStep = 5;
-  log("Step 5: selecting target layer '" + TARGET_LAYER_NAME + "'");
-  if (!selectLayerByName(app.activeDocument, TARGET_LAYER_NAME)) {
-    log("Step 5: target layer not found: '" + TARGET_LAYER_NAME + "'. Action may select its own layer.");
-  } else {
-    log("Step 5: target layer selected, state: " + describeDocState(app.activeDocument));
-  }
-
-  debugStep = 6;
-  log("Step 6: executing action '" + ACTION_NAME + "'");
-  log("Step 6: BEFORE action state: " + describeDocState(app.activeDocument));
-  runActionByName(ACTION_NAME, ACTION_SET_NAME);
-  log("Step 6: AFTER action state: " + describeDocState(app.activeDocument));
-
-  debugStep = 7;
-  log("Step 7: reopening model file (in case action changed focus)");
-  open(modelFile);
-  log("Step 7: model refocused, state: " + describeDocState(app.activeDocument));
-
-  debugStep = 8;
-  log("Step 8: exporting result to '" + RESULT_FILE_PATH + "'");
-  var file = new File(RESULT_FILE_PATH);
-  var options = new JPEGSaveOptions();
-  options.quality = 12;
-  options.embedColorProfile = true;
-  options.formatOptions = FormatOptions.OPTIMIZEDBASELINE;
-  app.activeDocument.saveAs(file, options, true, Extension.LOWERCASE);
-  log("Step 8: export finished");
-
+  main();
 } catch (e) {
-  var extra = "";
-  try {
-    extra = describeDocState(app.activeDocument);
-  } catch (_e) {}
-  log("FATAL ERROR at debugStep " + debugStep + ": " + e.message + " (#" + e.number + "); ctx=" + extra);
-  alert("Error on step " + debugStep + ": " + e.message);
-} finally {
-  try {
-    var setNameForCleanup = findActionSetForAction(ACTION_NAME) || ACTION_SET_NAME;
-    log("Cleanup: attempting to delete action set '" + setNameForCleanup + "'");
-    deleteActions(setNameForCleanup);
-  } catch (cleanupError) {
-    log("Cleanup: failed to delete action set: " + cleanupError.message);
-  }
-  log("=== MerchMadness run finished ===");
+  log("ERROR in merge job: " + e.toString());
+  // bewusst NICHT wieder einen Dialog auslösen
 }
 `;
 

@@ -2,7 +2,7 @@ import DropdownFilter from "@/components/filter/DropdownFilter";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import WizardShirtImageColumn from "@/components/WizardShirtImageColumn";
 import { Model } from "@db/schema";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface ModelSelectTabProps {
   models?: Model[];
@@ -52,6 +52,27 @@ const ModelSelectTab: React.FC<ModelSelectTabProps> = (props) => {
     }
   }, [models, selectedColor, selectedType]);
 
+  const countSelectedInGroup = (group: Model[], selectedIds: number[]) =>
+    group.filter((shirt) => selectedIds.includes(shirt.id)).length;
+
+  // memos
+  const frontPrintTitle = useMemo(() => {
+    const total = frontPrintModels.length;
+    const selectedCount = countSelectedInGroup(
+      frontPrintModels,
+      selectedModels
+    );
+
+    return `Front Print (${selectedCount}/${total} selected)`;
+  }, [frontPrintModels, selectedModels]);
+
+  const backPrintTitle = useMemo(() => {
+    const total = backPrintModels.length;
+    const selectedCount = countSelectedInGroup(backPrintModels, selectedModels);
+
+    return `Back Print (${selectedCount}/${total} selected)`;
+  }, [backPrintModels, selectedModels]);
+
   return (
     <div>
       <div className="flex flex-col justify-center gap-2">
@@ -82,7 +103,7 @@ const ModelSelectTab: React.FC<ModelSelectTabProps> = (props) => {
           Select the sleeve type for merging uploaded images with specific
           models. Merging images with models is only possible if models are
           visible in the selection. The system automatically distinguishes
-          between back-and frontprint.
+          between back- and frontprint.
         </text>
         <DropdownFilter
           key={"type"}
@@ -107,7 +128,7 @@ const ModelSelectTab: React.FC<ModelSelectTabProps> = (props) => {
                     console.log("onDelete", id);
                   }}
                   shirts={frontPrintModels}
-                  title="Front Print"
+                  title={frontPrintTitle}
                   badges={[selectedColor ? selectedColor : ""]}
                   selectedContent={selectedModels}
                   setSelectedContent={setSelectedModels}
@@ -121,7 +142,7 @@ const ModelSelectTab: React.FC<ModelSelectTabProps> = (props) => {
                     console.log("onDelete", id);
                   }}
                   shirts={backPrintModels}
-                  title="Back Print"
+                  title={backPrintTitle}
                   badges={[selectedColor ? selectedColor : ""]}
                   selectedContent={selectedModels}
                   setSelectedContent={setSelectedModels}

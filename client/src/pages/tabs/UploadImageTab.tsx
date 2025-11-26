@@ -121,7 +121,9 @@ const UploadImageTab: React.FC<UploadImageTabProps> = (props) => {
             <div className="flex flex-col gap-2 pb-2">
               <label className="font-bold">Upload Images</label>
               <text className="text-xs text-muted-foreground">
-                Choose images to upload. Should be of selected color.
+                Choose images to upload. Should be of selected color. Files
+                ending with `_front` will be counted as Frontprints, files
+                ending with `_back` will be counted as Backprints.
               </text>
             </div>
             <Input
