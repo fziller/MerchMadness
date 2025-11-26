@@ -350,8 +350,7 @@ try {
   fs.writeFileSync(destJsxPath, jsx, "utf8");
 }
 
-async function runMac(jsxPath: string) {
-  // keep it simple: Photoshop akzeptiert den Pfad direkt
+async function runMac(jsxPath: string, timeoutMs = 15_000) {
   const escaped = jsxPath.replace(/"/g, '\\"');
   const script = [
     `tell application id "com.adobe.Photoshop"`,
@@ -359,7 +358,71 @@ async function runMac(jsxPath: string) {
     `  do javascript of file "${escaped}"`,
     "end tell",
   ].join("\n");
-  await spawnPromise("osascript", ["-e", script]);
+
+  return new Promise<void>((resolve, reject) => {
+    const child = spawn("osascript", ["-e", script]);
+
+    let stderr = "";
+    child.stderr.on("data", (d) => {
+      stderr += d.toString();
+    });
+
+    let finished = false;
+
+    const timer = setTimeout(async () => {
+      if (finished) return;
+      finished = true;
+
+      console.error(
+        `[MerchMadness] runMac timeout after ${timeoutMs}ms. Killing Photoshop + osascript...`
+      );
+
+      try {
+        // erst Photoshop killen
+        await killPhotoshop();
+      } catch (e) {
+        console.error("[MerchMadness] killPhotoshop in runMac failed:", e);
+      }
+
+      try {
+        // dann sicherstellen, dass osascript selbst auch weg ist
+        child.kill("SIGKILL");
+      } catch (e) {
+        console.error("[MerchMadness] killing osascript failed:", e);
+      }
+
+      reject(
+        new Error(
+          `[MerchMadness] runMac: osascript/Photoshop did not finish within ${timeoutMs}ms`
+        )
+      );
+    }, timeoutMs);
+
+    child.on("close", (code) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(
+          new Error(
+            `[MerchMadness] runMac failed (${code}): osascript -e ${JSON.stringify(
+              script
+            )}\n${stderr}`
+          )
+        );
+      }
+    });
+
+    child.on("error", (err) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      reject(err);
+    });
+  });
 }
 
 async function runWinViaPowerShell(jsxPath: string) {
@@ -455,7 +518,7 @@ export async function runTriggerMerchMadnessAction(params: {
   });
 
   if (process.platform === "darwin") {
-    await runMac(jsxPath);
+    await runMac(jsxPath, timeoutMs);
   } else if (process.platform === "win32") {
     try {
       await runWinViaPowerShell(jsxPath);
