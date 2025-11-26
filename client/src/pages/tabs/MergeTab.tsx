@@ -57,7 +57,7 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
           console.log("Error combining images", { err });
           toast({
             title: "Error combining images",
-            description: err.toString(),
+            description: err.message,
             variant: "destructive",
           });
         }

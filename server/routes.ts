@@ -304,7 +304,7 @@ export function registerRoutes(app: Express): Server {
       res.json(newCombined);
     } catch (err) {
       console.error("Error creating combined image:", err);
-      res.status(500).send(err);
+      res.status(500).send({ message: err.message });
     }
   });
 
