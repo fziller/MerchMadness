@@ -38,6 +38,31 @@ function spawnPromise(
   });
 }
 
+async function killPhotoshop(): Promise<void> {
+  if (process.platform === "darwin") {
+    // macOS: Photoshop-Prozess hart killen
+    try {
+      console.warn("[MerchMadness] Killing Photoshop via pkill");
+      await spawnPromise("pkill", ["-9", "Adobe Photoshop"]);
+    } catch (e) {
+      console.error("[MerchMadness] Failed to kill Photoshop on macOS:", e);
+    }
+  } else if (process.platform === "win32") {
+    // Windows: Prozessname ggf. anpassen (Photoshop.exe / Photoshop 2025 etc.)
+    try {
+      console.warn("[MerchMadness] Killing Photoshop via taskkill");
+      await spawnPromise("taskkill", ["/IM", "Photoshop.exe", "/F"]);
+    } catch (e) {
+      console.error("[MerchMadness] Failed to kill Photoshop on Windows:", e);
+    }
+  } else {
+    console.warn(
+      "[MerchMadness] killPhotoshop: unsupported platform",
+      process.platform
+    );
+  }
+}
+
 function writeJsx(params: {
   actionFileAbs: string;
   shirtFileAbs: string;
@@ -442,9 +467,24 @@ export async function runTriggerMerchMadnessAction(params: {
   }
 
   const deadline = Date.now() + timeoutMs;
+
   while (Date.now() < deadline) {
-    if (fs.existsSync(resultFileAbs)) return;
+    if (fs.existsSync(resultFileAbs)) {
+      console.log(
+        `[MerchMadness] Result file created within ${timeoutMs}ms:`,
+        resultFileAbs
+      );
+      return;
+    }
     await new Promise((r) => setTimeout(r, 1000));
   }
-  throw new Error("Timeout: result file not created");
+
+  console.error(
+    `[MerchMadness] Timeout: result file not created after ${timeoutMs}ms. Attempting to kill Photoshop...`
+  );
+  await killPhotoshop();
+
+  throw new Error(
+    `Timeout: result file not created after ${timeoutMs}ms (Photoshop killed)`
+  );
 }
