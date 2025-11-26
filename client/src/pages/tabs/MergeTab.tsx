@@ -56,9 +56,7 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
         } catch (err) {
           toast({
             title: "Error combining images",
-            description: `Shirt ${shirt.name ?? shirt.id} und Model ${
-              model.name ?? model.id
-            }`,
+            description: err.toString(),
           });
         }
       }
