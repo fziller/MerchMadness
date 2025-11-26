@@ -405,7 +405,7 @@ async function runMac(jsxPath: string, timeoutMs = 15_000) {
 
       reject(
         new Error(
-          `[MerchMadness] runMac: osascript/Photoshop did not finish within ${timeoutMs}ms`
+          `[MerchMadness] Photoshop automation did not finish within ${timeoutMs}ms. Please check the automation.`
         )
       );
     }, timeoutMs);
@@ -530,7 +530,7 @@ export async function runTriggerMerchMadnessAction(params: {
   });
 
   if (process.platform === "darwin") {
-    await runMac(jsxPath, 20_000);
+    await runMac(jsxPath, 40_000);
   } else if (process.platform === "win32") {
     try {
       await runWinViaPowerShell(jsxPath);
