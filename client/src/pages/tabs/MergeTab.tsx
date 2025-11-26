@@ -54,9 +54,11 @@ const MergeTab: React.FC<MergeTabProps> = (props) => {
         try {
           await postCombination.mutateAsync({ model, shirt, color });
         } catch (err) {
+          console.log("Error combining images", { err });
           toast({
             title: "Error combining images",
             description: err.toString(),
+            variant: "destructive",
           });
         }
       }

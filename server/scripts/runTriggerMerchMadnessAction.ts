@@ -530,7 +530,7 @@ export async function runTriggerMerchMadnessAction(params: {
   });
 
   if (process.platform === "darwin") {
-    await runMac(jsxPath, 40_000);
+    await runMac(jsxPath, 35_000);
   } else if (process.platform === "win32") {
     try {
       await runWinViaPowerShell(jsxPath);
