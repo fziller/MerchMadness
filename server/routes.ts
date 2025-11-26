@@ -282,19 +282,15 @@ export function registerRoutes(app: Express): Server {
 
       console.log("req.body", model, shirt);
 
-      try {
-        await runTriggerMerchMadnessAction({
-          actionUrl: model.automationUrl,
-          resultFileName,
-          modelDocumentUrl: model.documentUrl,
-          shirtFileUrl: shirt.imageUrl,
-          actionName: model.automationName,
-          layerName: "Longsleeve", // <- vormals Bug via getenv
-          actionSetName: "Default Actions", // Will be added to the action name
-        });
-      } catch (e) {
-        console.error("Script execution error:", e);
-      }
+      await runTriggerMerchMadnessAction({
+        actionUrl: model.automationUrl,
+        resultFileName,
+        modelDocumentUrl: model.documentUrl,
+        shirtFileUrl: shirt.imageUrl,
+        actionName: model.automationName,
+        layerName: "Longsleeve", // <- vormals Bug via getenv
+        actionSetName: "Default Actions", // Will be added to the action name
+      });
 
       const [newCombined] = await db
         .insert(combinedImages)

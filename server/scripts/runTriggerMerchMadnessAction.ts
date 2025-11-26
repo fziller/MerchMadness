@@ -91,8 +91,6 @@ function writeJsx(params: {
   const jsx = `
 // #target photoshop
 
-app.displayDialogs = DialogModes.NO;
-
 // Konfiguration aus Node injiziert
 var ACTION_NAME = "${actionName}";
 var ACTION_SET_NAME = "${actionSetName}";
@@ -257,12 +255,28 @@ function selectLayerByName(doc, name) {
   return walk(doc);
 }
 
+// ---- Clean up function for actions ----
+function cleanupActionSetsForAction() {
+  try {
+    var setName = findActionSetForAction(ACTION_NAME) || ACTION_SET_NAME;
+    if (!setName) {
+      log("cleanupActionSetsForAction: no existing action set found for '" + ACTION_NAME + "'");
+      return;
+    }
+    log("cleanupActionSetsForAction: deleting action set '" + setName + "'");
+    deleteActions(setName);
+  } catch (e) {
+    log("cleanupActionSetsForAction: error while cleaning up action sets: " + e.message);
+  }
+}
+
 // ---- Main Script ----
 
 function main() {
   var debugStep = 1;
   log("=== MerchMadness run started ===");
   log("ACTION_NAME=" + ACTION_NAME + ", ACTION_SET_NAME=" + ACTION_SET_NAME + ", TARGET_LAYER_NAME=" + TARGET_LAYER_NAME);
+  app.displayDialogs = DialogModes.NO;
 
   try {
     debugStep = 1;
@@ -270,6 +284,10 @@ function main() {
     while (app.documents.length > 0) {
       app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
     }
+
+    debugStep = 1.5;
+    log("Step 1.5: pre-cleanup of existing action sets for ACTION_NAME");
+    cleanupActionSetsForAction();
 
     debugStep = 2;
     log("Step 2: loading actions from '" + ACTION_FILE_PATH + "'");
@@ -327,13 +345,7 @@ function main() {
     // Do not show the alert. Photoshop needs to be able to continue.
     // alert("Error on step " + debugStep + ": " + e.message);
   } finally {
-    try {
-      var setNameForCleanup = findActionSetForAction(ACTION_NAME) || ACTION_SET_NAME;
-      log("Cleanup: attempting to delete action set '" + setNameForCleanup + "'");
-      deleteActions(setNameForCleanup);
-    } catch (cleanupError) {
-      log("Cleanup: failed to delete action set: " + cleanupError.message);
-    }
+    cleanupActionSetsForAction()
     log("=== MerchMadness run finished ===");
   }
 }
@@ -479,7 +491,7 @@ export async function runTriggerMerchMadnessAction(params: {
     layerName = "Longsleeve",
     actionSetName = "Default Actions",
     projectRoot = process.cwd(),
-    timeoutMs = 10_000,
+    timeoutMs = 15_000,
   } = params;
 
   const publicDir = path.resolve(projectRoot, "public");
